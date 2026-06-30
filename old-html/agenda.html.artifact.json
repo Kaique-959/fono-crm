@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "kind": "html",
+  "title": "agenda.html",
+  "entry": "agenda.html",
+  "renderer": "html",
+  "status": "complete",
+  "exports": [
+    "html",
+    "pdf",
+    "zip"
+  ],
+  "createdAt": "2026-06-29T14:40:53.853Z",
+  "updatedAt": "2026-06-29T14:40:53.853Z",
+  "metadata": {
+    "inferred": true,
+    "reconciled": true
+  }
+}

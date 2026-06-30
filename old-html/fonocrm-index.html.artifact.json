@@ -1,0 +1,23 @@
+{
+  "version": 1,
+  "kind": "html",
+  "title": "FonoCRM — Launcher",
+  "entry": "fonocrm-index.html",
+  "renderer": "html",
+  "status": "complete",
+  "exports": [
+    "html",
+    "pdf",
+    "zip"
+  ],
+  "primary": true,
+  "createdAt": "2026-06-29T14:45:12.149Z",
+  "updatedAt": "2026-06-29T14:45:12.172Z",
+  "sourceSkillId": "agent-browser",
+  "designSystemId": "dashboard",
+  "metadata": {
+    "identifier": "fonocrm-index",
+    "artifactType": "text/html",
+    "inferred": false
+  }
+}
