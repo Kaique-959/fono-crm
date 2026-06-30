@@ -54,11 +54,10 @@ export default function PacienteDetailPage() {
         <div className="bg-surface border border-border rounded-md p-5 hover:border-accent transition-colors">
           <h3 className="text-sm font-semibold mb-3" style={{ color: 'var(--fg-2)' }}>Informações Pessoais</h3>
           {[
-            ['Email', paciente.email],
+            ['Responsável', paciente.responsavel],
             ['Data de Nascimento', paciente.data_nascimento ? new Date(paciente.data_nascimento + 'T12:00:00').toLocaleDateString('pt-BR') : '—'],
-            ['CPF', paciente.cpf],
             ['WhatsApp', paciente.whatsapp],
-            ['Convênio', paciente.convenio],
+            ['Pedido Médico', paciente.pedido_medico === 'sim' ? 'Sim' : 'Não'],
           ].map(([label, value]) => (
             <div key={label as string} className="flex justify-between py-2 text-sm border-b last:border-b-0" style={{ borderColor: 'var(--border)' }}>
               <span style={{ color: 'var(--muted)' }}>{label}</span>
@@ -69,6 +68,11 @@ export default function PacienteDetailPage() {
         <div className="bg-surface border border-border rounded-md p-5 hover:border-accent transition-colors">
           <h3 className="text-sm font-semibold mb-3" style={{ color: 'var(--fg-2)' }}>Observações</h3>
           <p className="text-sm">{paciente.observacoes || 'Nenhuma observação.'}</p>
+          {paciente.pedido_medico === 'sim' && paciente.pedido_file && (
+            <button className="btn-sec mt-3 text-xs py-1.5 px-3" onClick={() => window.open(paciente.pedido_file, '_blank')}>
+              👁️ Visualizar Pedido Médico
+            </button>
+          )}
         </div>
       </div>
 
