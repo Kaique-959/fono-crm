@@ -154,7 +154,13 @@ export default function AgendaPage() {
               </div>
               <div>
                 <label className="text-xs font-medium" style={{ color: 'var(--fg-2)' }}>Data</label>
-                <input type="date" value={selectedDate} disabled />
+                <div className="flex gap-2 items-center">
+                  <input className="w-16 text-center" placeholder="DD" maxLength={2} value={selectedDate.split('-')[2] || ''} onChange={e => { const p = selectedDate.split('-'); const d = e.target.value.replace(/\D/g, '').slice(0,2); setSelectedDate(`${p[0]}-${p[1]}-${d}`) }} />
+                  <span className="text-sm" style={{ color: 'var(--muted)' }}>/</span>
+                  <input className="w-16 text-center" placeholder="MM" maxLength={2} value={selectedDate.split('-')[1] || ''} onChange={e => { const p = selectedDate.split('-'); const m = e.target.value.replace(/\D/g, '').slice(0,2); setSelectedDate(`${p[0]}-${m}-${p[2]}`) }} />
+                  <span className="text-sm" style={{ color: 'var(--muted)' }}>/</span>
+                  <input className="w-24 text-center" placeholder="AAAA" maxLength={4} value={selectedDate.split('-')[0] || ''} onChange={e => { const p = selectedDate.split('-'); const y = e.target.value.replace(/\D/g, '').slice(0,4); setSelectedDate(`${y}-${p[1]}-${p[2]}`) }} />
+                </div>
               </div>
               <div>
                 <label className="text-xs font-medium" style={{ color: 'var(--fg-2)' }}>Horário</label>
