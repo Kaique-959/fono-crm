@@ -128,7 +128,16 @@ export default function PacientesPage() {
             <div className="space-y-3.5">
               <div><label className="text-xs font-medium" style={{ color: 'var(--fg-2)' }}>Nome do paciente</label><input value={form.nome} onChange={e => setForm({ ...form, nome: e.target.value })} /></div>
               <div><label className="text-xs font-medium" style={{ color: 'var(--fg-2)' }}>Nome do responsável</label><input value={form.responsavel} onChange={e => setForm({ ...form, responsavel: e.target.value })} /></div>
-              <div><label className="text-xs font-medium" style={{ color: 'var(--fg-2)' }}>Data de nascimento</label><input type="date" value={form.data_nascimento} onChange={e => setForm({ ...form, data_nascimento: e.target.value })} /></div>
+              <div>
+  <label className="text-xs font-medium" style={{ color: 'var(--fg-2)' }}>Data de nascimento</label>
+  <div className="flex gap-2">
+    <input className="w-16 text-center" placeholder="DD" maxLength={2} value={form.data_nascimento ? form.data_nascimento.split('-')[2] || '' : ''} onChange={e => { const d = form.data_nascimento?.split('-') || ['', '', '']; const m = d[1] || ''; const y = d[0] || ''; const val = e.target.value.replace(/\D/g, '').slice(0, 2); setForm({ ...form, data_nascimento: `${y}-${m}-${val}` }) }} />
+    <span className="self-center text-sm" style={{ color: 'var(--muted)' }}>/</span>
+    <input className="w-16 text-center" placeholder="MM" maxLength={2} value={form.data_nascimento ? form.data_nascimento.split('-')[1] || '' : ''} onChange={e => { const d = form.data_nascimento?.split('-') || ['', '', '']; const val = e.target.value.replace(/\D/g, '').slice(0, 2); setForm({ ...form, data_nascimento: `${d[0] || ''}-${val}-${d[2] || ''}` }) }} />
+    <span className="self-center text-sm" style={{ color: 'var(--muted)' }}>/</span>
+    <input className="w-24 text-center" placeholder="AAAA" maxLength={4} value={form.data_nascimento ? form.data_nascimento.split('-')[0] || '' : ''} onChange={e => { const d = form.data_nascimento?.split('-') || ['', '', '']; const val = e.target.value.replace(/\D/g, '').slice(0, 4); setForm({ ...form, data_nascimento: `${val}-${d[1] || ''}-${d[2] || ''}` }) }} />
+  </div>
+</div>
               <div>
                 <label className="text-xs font-medium" style={{ color: 'var(--fg-2)' }}>Pedido médico</label>
                 <div className="flex gap-4 pt-1">
