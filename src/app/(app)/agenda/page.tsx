@@ -164,7 +164,11 @@ export default function AgendaPage() {
               </div>
               <div>
                 <label className="text-xs font-medium" style={{ color: 'var(--fg-2)' }}>Horário</label>
-                <input type="time" value={form.hora} onChange={e => setForm({ ...form, hora: e.target.value })} />
+                <div className="flex gap-2 items-center">
+                  <input className="w-16 text-center" placeholder="HH" maxLength={2} value={form.hora.split(':')[0] || ''} onChange={e => { const h = e.target.value.replace(/\D/g, '').slice(0,2); setForm({ ...form, hora: `${h}:${form.hora.split(':')[1] || '00'}` }) }} />
+                  <span className="text-sm" style={{ color: 'var(--muted)' }}>:</span>
+                  <input className="w-16 text-center" placeholder="MM" maxLength={2} value={form.hora.split(':')[1] || ''} onChange={e => { const m = e.target.value.replace(/\D/g, '').slice(0,2); setForm({ ...form, hora: `${form.hora.split(':')[0] || '08'}:${m}` }) }} />
+                </div>
               </div>
               <div>
                 <label className="text-xs font-medium" style={{ color: 'var(--fg-2)' }}>Valor (R$)</label>
