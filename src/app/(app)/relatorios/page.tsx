@@ -100,11 +100,15 @@ export default function RelatoriosPage() {
       <div className="grid grid-cols-2 max-md:grid-cols-1 gap-4">
         <div className="bg-surface border border-border rounded-md p-5 hover:border-accent transition-colors">
           <h3 className="text-sm font-semibold mb-4" style={{ color: 'var(--fg-2)' }}>Faturamento Mensal</h3>
-          {chartFat && <Bar data={chartFat} options={{ responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { ticks: { color: '#707070', font: { size: 11 } }, grid: { color: '#d9d9d9' } }, y: { ticks: { color: '#707070', font: { size: 11 } }, grid: { color: '#d9d9d9' }, beginAtZero: true } } }} />}
+          <div style={{ maxHeight: 260, position: 'relative' }}>
+            {chartFat && <Bar data={chartFat} options={{ responsive: true, maintainAspectRatio: true, plugins: { legend: { display: false } }, scales: { x: { ticks: { color: '#707070', font: { size: 11 } }, grid: { color: '#d9d9d9' } }, y: { ticks: { color: '#707070', font: { size: 11 } }, grid: { color: '#d9d9d9' }, beginAtZero: true } } }} />}
+          </div>
         </div>
         <div className="bg-surface border border-border rounded-md p-5 hover:border-accent transition-colors">
           <h3 className="text-sm font-semibold mb-4" style={{ color: 'var(--fg-2)' }}>Exames Realizados</h3>
-          {chartExames && <Doughnut data={chartExames} options={{ responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { color: '#3a3a3a', font: { size: 11 } } } } }} />}
+          <div style={{ maxHeight: 260, position: 'relative' }}>
+            {chartExames && <Doughnut data={chartExames} options={{ responsive: true, maintainAspectRatio: true, plugins: { legend: { position: 'bottom', labels: { color: '#3a3a3a', font: { size: 11 } } } } }} />}
+          </div>
         </div>
       </div>
     </div>
