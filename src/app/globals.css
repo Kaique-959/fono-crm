@@ -1,0 +1,81 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg: #fbf6ee;
+  --surface: #fffdf8;
+  --surface-warm: #f1e3cf;
+  --fg: #201914;
+  --fg-2: #4c4037;
+  --muted: #7a6d63;
+  --meta: #9b5b32;
+  --border: #ded2c3;
+  --border-soft: #eee4d7;
+  --accent: #9b5b32;
+  --accent-on: #ffffff;
+  --accent-hover: #8a4f2a;
+  --accent-soft: rgba(155, 91, 50, 0.08);
+  --success: #4f8a4f;
+  --warn: #c9822f;
+  --danger: #b33a3a;
+  --font-display: Georgia, "Times New Roman", serif;
+  --font-body: Inter, system-ui, sans-serif;
+  --font-mono: "SF Mono", ui-monospace, Menlo, monospace;
+  --text-base: 17px;
+  --radius-sm: 10px;
+  --radius-md: 16px;
+  --radius-lg: 24px;
+  --radius-pill: 9999px;
+  --focus-ring: 0 0 0 4px rgba(155, 91, 50, 0.24);
+  --motion-fast: 150ms;
+  --motion-base: 240ms;
+  --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+}
+
+body {
+  font-size: var(--text-base);
+  line-height: 1.62;
+}
+
+input, select, textarea {
+  @apply w-full px-3 py-2.5 rounded-sm border border-border bg-surface text-fg text-sm transition-colors;
+}
+input:focus, select:focus, textarea:focus {
+  @apply outline-none border-accent;
+  box-shadow: var(--focus-ring);
+}
+
+.btn-primary {
+  @apply inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-sm text-sm font-semibold text-accent-on bg-accent border-none cursor-pointer transition-colors;
+}
+.btn-primary:hover { background: var(--accent-hover); }
+.btn-primary:disabled { @apply opacity-50 cursor-not-allowed; }
+
+.btn-sec {
+  @apply inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-sm text-sm font-medium text-fg bg-transparent border border-border cursor-pointer transition-colors;
+}
+.btn-sec:hover { @apply border-fg-2; }
+
+.sidebar {
+  @apply w-60 bg-surface border-r border-border flex flex-col flex-shrink-0 p-6;
+}
+
+.sidebar-logo {
+  @apply flex items-center gap-2.5 text-lg font-bold font-display mb-8 px-2;
+}
+
+.sidebar nav a {
+  @apply flex items-center gap-2.5 px-3 py-2.5 rounded-sm text-sm font-medium text-fg-2 no-underline transition-all;
+}
+.sidebar nav a:hover, .sidebar nav a.active { background: var(--accent-soft); color: var(--fg); }
+.sidebar nav a.active { color: var(--accent); }
+
+.status-badge {
+  @apply inline-flex items-center gap-1.5 px-2.5 py-1 rounded-pill text-xs font-medium;
+}
+.status-badge.lead { background: rgba(183,121,31,0.10); color: var(--warn); }
+.status-badge.agendado { background: rgba(17,17,17,0.06); color: var(--accent); }
+.status-badge.realizado { background: rgba(22,138,70,0.10); color: var(--success); }
+.status-badge.retorno { background: rgba(58,58,58,0.08); color: var(--fg-2); }
+.status-badge.inativo { background: rgba(112,112,112,0.08); color: var(--muted); }

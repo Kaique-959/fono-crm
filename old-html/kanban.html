@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>FonoCRM — Kanban</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #fbf6ee; --surface: #fffdf8; --surface-warm: #f1e3cf;
+      --fg: #201914; --fg-2: #4c4037; --muted: #7a6d63;
+      --meta: #9b5b32; --border: #ded2c3; --border-soft: #eee4d7;
+      --accent: #9b5b32; --accent-on: #ffffff;
+      --accent-hover: color-mix(in oklab, var(--accent), black 8%);
+      --accent-active: color-mix(in oklab, var(--accent), black 14%);
+      --accent-soft: rgba(155,91,50,0.08);
+      --success: #4f8a4f; --warn: #c9822f; --danger: #b33a3a;
+      --font-display: Georgia, "Times New Roman", serif;
+      --font-body: Inter, system-ui, sans-serif;
+      --font-mono: "SF Mono", ui-monospace, Menlo, monospace;
+      --radius-sm: 10px; --radius-md: 16px; --radius-lg: 24px; --radius-pill: 9999px;
+      --focus-ring: 0 0 0 4px rgba(155,91,50,0.24);
+      --motion-fast: 150ms; --motion-base: 240ms;
+      --ease-standard: cubic-bezier(0.2,0,0,1);
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body { height: 100%; margin: 0; }
+    body { background: var(--bg); color: var(--fg); font-family: var(--font-body); font-size: var(--text-base); line-height: var(--leading-body); -webkit-font-smoothing: antialiased; }
+    .layout { display: flex; min-height: 100vh; }
+    .sidebar { width: 240px; background: var(--surface); border-right: 1px solid var(--border); padding: 24px 16px; display: flex; flex-direction: column; flex-shrink: 0; }
+    .sidebar-logo { display: flex; align-items: center; gap: 10px; font-size: 19px; font-weight: 700; font-family: var(--font-display); margin-bottom: 32px; padding: 0 8px; }
+    .sidebar-logo span { font-size: 22px; }
+    .sidebar nav { display: flex; flex-direction: column; gap: 4px; flex: 1; }
+    .sidebar nav a { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: var(--radius-sm); color: var(--fg-2); font-size: 14px; font-weight: 500; text-decoration: none; transition: all var(--motion-fast); }
+    .sidebar nav a:hover, .sidebar nav a.active { background: var(--accent-soft); color: var(--fg); }
+    .sidebar nav a.active { color: var(--accent); }
+    .sidebar .logout { margin-top: auto; padding: 10px 12px; background: none; border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--muted); font-size: 13px; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: color var(--motion-fast), border-color var(--motion-fast); }
+    .sidebar .logout:hover { color: var(--danger); border-color: var(--danger); }
+    .main { flex: 1; padding: 32px; overflow-y: auto; }
+    .main h1 { font-size: 26px; font-weight: 700; font-family: var(--font-display); margin-bottom: 24px; }
+    .kanban-board { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; min-height: 60vh; }
+    @media (max-width: 1200px) { .kanban-board { grid-template-columns: repeat(3, 1fr); } }
+    @media (max-width: 768px) { .kanban-board { grid-template-columns: 1fr; } }
+    .kanban-col { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 12px; display: flex; flex-direction: column; transition: border-color var(--motion-fast); }
+    .kanban-col:hover { border-color: var(--fg-2); }
+    .kanban-col h3 { font-size: 13px; font-weight: 600; padding-bottom: 12px; margin-bottom: 8px; border-bottom: 2px solid var(--border); display: flex; align-items: center; gap: 8px; }
+    .kanban-col h3 .count { font-family: var(--font-mono); font-size: 11px; color: var(--muted); margin-left: auto; }
+    .kanban-col[data-status="lead"] h3 { border-color: var(--warn); }
+    .kanban-col[data-status="agendado"] h3 { border-color: var(--accent); }
+    .kanban-col[data-status="realizado"] h3 { border-color: var(--success); }
+    .kanban-col[data-status="retorno"] h3 { border-color: var(--fg-2); }
+    .kanban-col[data-status="inativo"] h3 { border-color: var(--muted); }
+    .kanban-card { background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 12px; margin-bottom: 8px; cursor: grab; transition: transform var(--motion-fast), box-shadow var(--motion-fast), border-color var(--motion-fast); }
+    .kanban-card:hover { border-color: var(--accent); }
+    .kanban-card:active { cursor: grabbing; }
+    .kanban-card.dragging { opacity: 0.5; transform: rotate(2deg); }
+    .kanban-card .card-name { font-size: 13px; font-weight: 600; margin-bottom: 4px; }
+    .kanban-card .card-meta { font-size: 11px; color: var(--muted); font-family: var(--font-mono); }
+    .kanban-card .card-meta span { display: block; }
+    .kanban-col.drag-over { background: var(--accent-soft); border-color: var(--accent); transition: background var(--motion-fast), border-color var(--motion-fast); }
+    .empty-col { color: var(--muted); font-size: 12px; text-align: center; padding: 24px 0; }
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="sidebar-logo"><span>🗣️</span> FonoCRM</div>
+      <nav>
+        <a href="dashboard.html">📊 Dashboard</a>
+        <a href="pacientes.html">👥 Pacientes</a>
+        <a href="kanban.html" class="active">📋 Kanban</a>
+        <a href="agenda.html">📅 Agenda</a>
+        <a href="relatorios.html">📈 Relatórios</a>
+      </nav>
+      <a href="#" onclick="sair();return false;" style="display:flex;align-items:center;gap:8px;margin-top:auto;padding:10px 12px;background:none;border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--muted);font-size:13px;cursor:pointer;text-decoration:none;">🚪 Sair</a>
+    </aside>
+    <main class="main">
+      <h1>Kanban</h1>
+      <div class="kanban-board" id="kanbanBoard"></div>
+    </main>
+  </div>
+
+  <script>
+    function sair() { window.location.href = 'login.html'; }
+    function getData(key) { try { return JSON.parse(localStorage.getItem(key)) || []; } catch(_) { return []; } }
+    function saveData(key, data) { localStorage.setItem(key, JSON.stringify(data)); }
+
+    var COLUMNS = [
+      { status: 'lead', label: '📥 Lead' },
+      { status: 'agendado', label: '📅 Agendado' },
+      { status: 'realizado', label: '✅ Realizado' },
+      { status: 'retorno', label: '🔄 Retorno' },
+      { status: 'inativo', label: '❌ Inativo' },
+    ];
+
+    var pacientes = [];
+
+    function loadKanban() {
+      pacientes = getData('fono_crm_pacientes');
+      renderBoard();
+    }
+
+    function renderBoard() {
+      var board = document.getElementById('kanbanBoard');
+      board.innerHTML = COLUMNS.map(function(col) {
+        var items = pacientes.filter(function(p) { return (p.status || 'lead') === col.status; });
+        return '<div class="kanban-col" data-status="' + col.status + '" ondragover="onDragOver(event)" ondrop="onDrop(event, \'' + col.status + '\')" ondragleave="onDragLeave(event)"><h3>' + col.label + ' <span class="count">' + items.length + '</span></h3>' +
+          (items.length === 0 ? '<div class="empty-col">Arraste cards para cá</div>' :
+            items.map(function(p) {
+              return '<div class="kanban-card" draggable="true" data-id="' + p.id + '" data-status="' + col.status + '" ondragstart="onDragStart(event)" onclick="event.stopPropagation(); location.href=\'paciente.html?id=' + p.id + '\'"><div class="card-name">' + (p.nome || 'Sem nome') + '</div><div class="card-meta"><span>' + (p.procedimento || '—') + '</span>' + (p.ultimo_agendamento ? '<span>' + new Date(p.ultimo_agendamento).toLocaleDateString('pt-BR') + '</span>' : '') + '</div></div>';
+            }).join('')) + '</div>';
+      }).join('');
+    }
+
+    var draggedId = null;
+
+    function onDragStart(e) {
+      draggedId = e.target.dataset.id;
+      e.target.classList.add('dragging');
+      e.dataTransfer.effectAllowed = 'move';
+    }
+
+    function onDragOver(e) {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      e.currentTarget.classList.add('drag-over');
+    }
+
+    function onDragLeave(e) {
+      e.currentTarget.classList.remove('drag-over');
+    }
+
+    function onDrop(e, newStatus) {
+      e.preventDefault();
+      e.currentTarget.classList.remove('drag-over');
+      if (!draggedId) return;
+
+      var card = document.querySelector('.kanban-card[data-id="' + draggedId + '"]');
+      if (card) card.classList.remove('dragging');
+
+      var pacientes = getData('fono_crm_pacientes');
+      var idx = pacientes.findIndex(function(p) { return p.id == draggedId; });
+      if (idx !== -1) {
+        pacientes[idx].status = newStatus;
+        saveData('fono_crm_pacientes', pacientes);
+      }
+
+      draggedId = null;
+      loadKanban();
+    }
+
+    loadKanban();
+  </script>
+</body>
+</html>

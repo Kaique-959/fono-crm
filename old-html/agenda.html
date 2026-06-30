@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>FonoCRM — Agenda</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #fbf6ee; --surface: #fffdf8; --surface-warm: #f1e3cf;
+      --fg: #201914; --fg-2: #4c4037; --muted: #7a6d63;
+      --meta: #9b5b32; --border: #ded2c3; --border-soft: #eee4d7;
+      --accent: #9b5b32; --accent-on: #ffffff;
+      --accent-hover: color-mix(in oklab, var(--accent), black 8%);
+      --accent-active: color-mix(in oklab, var(--accent), black 14%);
+      --accent-soft: rgba(155,91,50,0.08);
+      --success: #4f8a4f; --warn: #c9822f; --danger: #b33a3a;
+      --font-display: Georgia, "Times New Roman", serif;
+      --font-body: Inter, system-ui, sans-serif;
+      --font-mono: "SF Mono", ui-monospace, Menlo, monospace;
+      --radius-sm: 10px; --radius-md: 16px; --radius-lg: 24px; --radius-pill: 9999px;
+      --focus-ring: 0 0 0 4px rgba(155,91,50,0.24);
+      --motion-fast: 150ms; --motion-base: 240ms;
+      --ease-standard: cubic-bezier(0.2,0,0,1);
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body { height: 100%; margin: 0; }
+    body { background: var(--bg); color: var(--fg); font-family: var(--font-body); font-size: var(--text-base); line-height: var(--leading-body); -webkit-font-smoothing: antialiased; }
+    .layout { display: flex; min-height: 100vh; }
+    .sidebar { width: 240px; background: var(--surface); border-right: 1px solid var(--border); padding: 24px 16px; display: flex; flex-direction: column; flex-shrink: 0; }
+    .sidebar-logo { display: flex; align-items: center; gap: 10px; font-size: 19px; font-weight: 700; font-family: var(--font-display); margin-bottom: 32px; padding: 0 8px; }
+    .sidebar-logo span { font-size: 22px; }
+    .sidebar nav { display: flex; flex-direction: column; gap: 4px; flex: 1; }
+    .sidebar nav a { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: var(--radius-sm); color: var(--fg-2); font-size: 14px; font-weight: 500; text-decoration: none; transition: all var(--motion-fast); }
+    .sidebar nav a:hover, .sidebar nav a.active { background: var(--accent-soft); color: var(--fg); }
+    .sidebar nav a.active { color: var(--accent); }
+    .sidebar .logout { margin-top: auto; padding: 10px 12px; background: none; border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--muted); font-size: 13px; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: color var(--motion-fast), border-color var(--motion-fast); }
+    .sidebar .logout:hover { color: var(--danger); border-color: var(--danger); }
+    .main { flex: 1; padding: 32px; overflow-y: auto; }
+    .main h1 { font-size: 26px; font-weight: 700; font-family: var(--font-display); margin-bottom: 24px; }
+    .calendar-header { display: flex; align-items: center; gap: 16px; margin-bottom: 20px; }
+    .calendar-header h2 { font-size: 18px; font-weight: 600; flex: 1; }
+    .calendar-header button { background: var(--surface-2); color: var(--fg); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 8px 14px; font-size: 13px; cursor: pointer; transition: background var(--motion-fast), border-color var(--motion-fast); }
+    .calendar-header button:hover { border-color: var(--accent); }
+    .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; margin-bottom: 24px; }
+    .calendar-grid .day-header { text-align: center; font-size: 11px; color: var(--muted); font-family: var(--font-mono); text-transform: uppercase; padding: 8px 0; }
+    .calendar-grid .day { aspect-ratio: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; border-radius: var(--radius-sm); font-size: 13px; cursor: pointer; transition: background var(--motion-fast); position: relative; }
+    .calendar-grid .day:hover { background: var(--surface-2); }
+    .calendar-grid .day.today { border: 1px solid var(--accent); }
+    .calendar-grid .day.selected { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
+    .calendar-grid .day.other-month { color: var(--muted); opacity: 0.4; }
+    .calendar-grid .day .dot { width: 4px; height: 4px; border-radius: 50%; background: var(--accent); position: absolute; bottom: 6px; }
+    .day-schedule { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 20px; transition: border-color var(--motion-fast); }
+    .day-schedule:hover { border-color: var(--accent); }
+    .day-schedule h3 { font-size: 14px; font-weight: 600; margin-bottom: 16px; color: var(--fg-2); }
+    .schedule-item { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--border); }
+    .schedule-item:last-child { border-bottom: none; }
+    .schedule-time { font-family: var(--font-mono); font-size: 12px; color: var(--muted); min-width: 60px; }
+    .schedule-info { flex: 1; font-size: 13px; }
+    .schedule-info strong { color: var(--fg); }
+    .schedule-info .meta { color: var(--muted); font-size: 12px; display: block; }
+    .empty-state { color: var(--muted); font-size: 13px; padding: 24px 0; text-align: center; }
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="sidebar-logo"><span>🗣️</span> FonoCRM</div>
+      <nav>
+        <a href="dashboard.html">📊 Dashboard</a>
+        <a href="pacientes.html">👥 Pacientes</a>
+        <a href="kanban.html">📋 Kanban</a>
+        <a href="agenda.html" class="active">📅 Agenda</a>
+        <a href="relatorios.html">📈 Relatórios</a>
+      </nav>
+      <a href="#" onclick="sair();return false;" style="display:flex;align-items:center;gap:8px;margin-top:auto;padding:10px 12px;background:none;border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--muted);font-size:13px;cursor:pointer;text-decoration:none;">🚪 Sair</a>
+    </aside>
+    <main class="main">
+      <h1>Agenda</h1>
+      <div class="calendar-header">
+        <button onclick="prevMonth()">←</button>
+        <h2 id="monthLabel"></h2>
+        <button onclick="nextMonth()">→</button>
+        <button onclick="goToday()" style="margin-left: auto;">Hoje</button>
+      </div>
+      <div class="calendar-grid" id="calendarGrid"></div>
+      <div class="day-schedule" id="daySchedule">
+        <h3 id="selectedDayLabel">Selecione uma data</h3>
+        <div id="scheduleList"><div class="empty-state">Clique em um dia para ver a programação.</div></div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    function sair() { window.location.href = 'login.html'; }
+    function getData(key) { try { return JSON.parse(localStorage.getItem(key)) || []; } catch(_) { return []; } }
+
+    var currentDate = new Date();
+    var selectedDate = new Date().toISOString().split('T')[0];
+
+    function loadConsultas() {
+      var consultas = getData('fono_crm_consultas');
+      renderCalendar(consultas);
+      renderSchedule(consultas);
+    }
+
+    function renderCalendar(consultas) {
+      var year = currentDate.getFullYear();
+      var month = currentDate.getMonth();
+      var grid = document.getElementById('calendarGrid');
+      var label = document.getElementById('monthLabel');
+      label.textContent = new Date(year, month).toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
+
+      var firstDay = new Date(year, month, 1).getDay();
+      var daysInMonth = new Date(year, month + 1, 0).getDate();
+      var daysInPrev = new Date(year, month, 0).getDate();
+      var today = new Date().toISOString().split('T')[0];
+
+      var consultasPorDia = {};
+      consultas.forEach(function(c) {
+        var dia = c.data.split('T')[0];
+        if (!consultasPorDia[dia]) consultasPorDia[dia] = [];
+        consultasPorDia[dia].push(c);
+      });
+
+      var dayNames = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+      var html = dayNames.map(function(d) { return '<div class="day-header">' + d + '</div>'; }).join('');
+
+      for (var i = firstDay - 1; i >= 0; i--) {
+        html += '<div class="day other-month">' + (daysInPrev - i) + '</div>';
+      }
+
+      for (var d = 1; d <= daysInMonth; d++) {
+        var dateStr = year + '-' + String(month + 1).padStart(2, '0') + '-' + String(d).padStart(2, '0');
+        var isToday = dateStr === today;
+        var isSelected = dateStr === selectedDate;
+        var hasConsulta = consultasPorDia[dateStr];
+        html += '<div class="day ' + (isToday ? 'today' : '') + ' ' + (isSelected ? 'selected' : '') + '" onclick="selectDay(\'' + dateStr + '\')">' + d + (hasConsulta ? '<div class="dot"></div>' : '') + '</div>';
+      }
+
+      var totalCells = firstDay + daysInMonth;
+      var remaining = (7 - (totalCells % 7)) % 7;
+      for (var d = 1; d <= remaining; d++) {
+        html += '<div class="day other-month">' + d + '</div>';
+      }
+
+      grid.innerHTML = html;
+    }
+
+    function renderSchedule(consultas) {
+      var label = document.getElementById('selectedDayLabel');
+      var list = document.getElementById('scheduleList');
+      var dataObj = new Date(selectedDate + 'T12:00:00');
+      label.textContent = 'Programação de ' + dataObj.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' });
+
+      var dayConsultas = consultas.filter(function(c) { return c.data.split('T')[0] === selectedDate; });
+
+      if (dayConsultas.length === 0) {
+        list.innerHTML = '<div class="empty-state">Nenhum agendamento para este dia.</div>';
+        return;
+      }
+
+      list.innerHTML = dayConsultas.map(function(c) {
+        var hora = c.data ? new Date(c.data).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : '—';
+        return '<div class="schedule-item"><div class="schedule-time">' + hora + '</div><div class="schedule-info"><strong>' + (c.paciente_nome || 'Paciente') + '</strong><span class="meta">' + (c.exame || 'Consulta') + ' · ' + (c.status || 'agendado') + (c.valor ? ' · R$ ' + parseFloat(c.valor).toFixed(2) : '') + '</span></div></div>';
+      }).join('');
+    }
+
+    function selectDay(dateStr) {
+      selectedDate = dateStr;
+      loadConsultas();
+    }
+
+    function prevMonth() {
+      currentDate.setMonth(currentDate.getMonth() - 1);
+      renderCalendar(getData('fono_crm_consultas'));
+    }
+
+    function nextMonth() {
+      currentDate.setMonth(currentDate.getMonth() + 1);
+      renderCalendar(getData('fono_crm_consultas'));
+    }
+
+    function goToday() {
+      currentDate = new Date();
+      selectedDate = new Date().toISOString().split('T')[0];
+      loadConsultas();
+    }
+
+    loadConsultas();
+  </script>
+</body>
+</html>

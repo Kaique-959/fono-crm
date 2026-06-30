@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>FonoCRM — CRM para Clínica de Fonoaudiologia</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #fbf6ee; --surface: #fffdf8; --surface-warm: #f1e3cf;
+      --fg: #201914; --fg-2: #4c4037; --muted: #7a6d63;
+      --meta: #9b5b32; --border: #ded2c3; --border-soft: #eee4d7;
+      --accent: #9b5b32; --accent-on: #ffffff;
+      --accent-hover: color-mix(in oklab, var(--accent), black 8%);
+      --accent-active: color-mix(in oklab, var(--accent), black 14%);
+      --accent-soft: rgba(155,91,50,0.08);
+      --success: #4f8a4f; --warn: #c9822f; --danger: #b33a3a;
+      --font-display: Georgia, "Times New Roman", serif;
+      --font-body: Inter, system-ui, sans-serif;
+      --font-mono: "SF Mono", ui-monospace, Menlo, monospace;
+      --radius-sm: 10px; --radius-md: 16px; --radius-lg: 24px; --radius-pill: 9999px;
+      --focus-ring: 0 0 0 4px rgba(155,91,50,0.24);
+      --motion-fast: 150ms; --motion-base: 240ms;
+      --ease-standard: cubic-bezier(0.2,0,0,1);
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    body {
+      margin: 0; background: var(--bg); color: var(--fg);
+      font-family: var(--font-body); font-size: var(--text-base); line-height: var(--leading-body);
+      -webkit-font-smoothing: antialiased;
+    }
+    .container { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
+
+    /* Hero */
+    .hero {
+      padding: 80px 0 60px; text-align: center;
+    }
+    .hero-logo {
+      width: 72px; height: 72px;
+      background: var(--accent-soft); border-radius: var(--radius-lg);
+      display: grid; place-items: center;
+      margin: 0 auto 20px; font-size: 32px;
+    }
+    .hero h1 {
+      font-size: 36px; font-weight: 700; font-family: var(--font-display); margin-bottom: 8px;
+    }
+    .hero p {
+      color: var(--muted); font-size: 17px; max-width: 500px; margin: 0 auto 8px;
+    }
+    .hero .btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      margin-top: 24px; padding: 12px 28px;
+      background: var(--accent); color: var(--accent-on);
+      border: none; border-radius: var(--radius-sm);
+      font-size: 15px; font-weight: 600; cursor: pointer;
+      text-decoration: none;
+    }
+    .hero .btn:hover { background: var(--accent-hover); }
+
+    /* Screen grid */
+    .screen-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      padding: 40px 0 80px;
+    }
+    @media (max-width: 900px) { .screen-grid { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 560px) { .screen-grid { grid-template-columns: 1fr; } }
+    .screen-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 24px;
+      text-decoration: none;
+      color: var(--fg);
+      transition: border-color var(--motion-fast), transform var(--motion-fast);
+    }
+    .screen-card:hover {
+      border-color: var(--accent);
+      transform: translateY(-2px);
+    }
+    .screen-card .icon {
+      font-size: 24px; margin-bottom: 12px;
+    }
+    .screen-card h3 {
+      font-size: 16px; font-weight: 600; margin-bottom: 6px;
+    }
+    .screen-card p {
+      color: var(--muted); font-size: 13px; margin: 0;
+    }
+    footer {
+      padding: 32px 0; text-align: center;
+      color: var(--muted); font-size: 13px;
+      border-top: 1px solid var(--border);
+    }
+  </style>
+</head>
+<body>
+  <div class="hero">
+    <div class="hero-logo">🗣️</div>
+    <h1>FonoCRM</h1>
+    <p>CRM completo para sua clínica de Fonoaudiologia</p>
+    <p style="font-size:13px; color:var(--fg-2);">Gestão de pacientes, agendamentos, kanban e relatórios</p>
+    <a href="dashboard.html" class="btn">Acessar o Sistema →</a>
+  </div>
+  <div class="container">
+    <div class="screen-grid">
+      <a class="screen-card" href="dashboard.html">
+        <div class="icon">📊</div>
+        <h3>Dashboard</h3>
+        <p>KPIs, gráficos de agendamentos e exames, feed de atividades recentes.</p>
+      </a>
+      <a class="screen-card" href="pacientes.html">
+        <div class="icon">👥</div>
+        <h3>Pacientes</h3>
+        <p>Cadastro completo com busca, filtros e perfil individual com histórico.</p>
+      </a>
+      <a class="screen-card" href="kanban.html">
+        <div class="icon">📋</div>
+        <h3>Kanban</h3>
+        <p>Arraste e solte pacientes entre as colunas: Lead → Agendado → Realizado → Retorno → Inativo.</p>
+      </a>
+      <a class="screen-card" href="agenda.html">
+        <div class="icon">📅</div>
+        <h3>Agenda</h3>
+        <p>Calendário interativo com programação diária de consultas.</p>
+      </a>
+      <a class="screen-card" href="relatorios.html">
+        <div class="icon">📈</div>
+        <h3>Relatórios</h3>
+        <p>Faturamento mensal, exames realizados e novos pacientes por período.</p>
+      </a>
+      <a class="screen-card" href="login.html" style="border: 1px dashed var(--border);">
+        <div class="icon">🔐</div>
+        <h3>Login</h3>
+        <p>Tela de entrada do sistema. Versão simplificada.</p>
+      </a>
+    </div>
+  </div>
+  <footer>
+    FonoCRM © 2026 · Feito para fonoaudiólogos
+  </footer>
+  <script>
+    if (false) {
+      document.querySelectorAll('.screen-card[href="login.html"]').forEach(function(el) {
+        el.style.display = 'none';
+      });
+    }
+  </script>
+</body>
+</html>

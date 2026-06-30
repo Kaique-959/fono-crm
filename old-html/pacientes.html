@@ -1,0 +1,318 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>FonoCRM — Pacientes</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #fbf6ee; --surface: #fffdf8; --surface-warm: #f1e3cf;
+      --fg: #201914; --fg-2: #4c4037; --muted: #7a6d63;
+      --meta: #9b5b32; --border: #ded2c3; --border-soft: #eee4d7;
+      --accent: #9b5b32; --accent-on: #ffffff;
+      --accent-hover: color-mix(in oklab, var(--accent), black 8%);
+      --accent-active: color-mix(in oklab, var(--accent), black 14%);
+      --accent-soft: rgba(155,91,50,0.08);
+      --success: #4f8a4f; --warn: #c9822f; --danger: #b33a3a;
+      --font-display: Georgia, "Times New Roman", serif;
+      --font-body: Inter, system-ui, sans-serif;
+      --font-mono: "SF Mono", ui-monospace, Menlo, monospace;
+      --radius-sm: 10px; --radius-md: 16px; --radius-lg: 24px; --radius-pill: 9999px;
+      --focus-ring: 0 0 0 4px rgba(155,91,50,0.24);
+      --motion-fast: 150ms; --motion-base: 240ms;
+      --ease-standard: cubic-bezier(0.2,0,0,1);
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body { height: 100%; margin: 0; }
+    body {
+      background: var(--bg); color: var(--fg);
+      font-family: var(--font-body); font-size: var(--text-base); line-height: var(--leading-body);
+      -webkit-font-smoothing: antialiased;
+    }
+    .layout { display: flex; min-height: 100vh; }
+    .sidebar { width: 240px; background: var(--surface); border-right: 1px solid var(--border); padding: 24px 16px; display: flex; flex-direction: column; flex-shrink: 0; }
+    .sidebar-logo { display: flex; align-items: center; gap: 10px; font-size: 19px; font-weight: 700; font-family: var(--font-display); margin-bottom: 32px; padding: 0 8px; }
+    .sidebar-logo span { font-size: 22px; }
+    .sidebar nav { display: flex; flex-direction: column; gap: 4px; flex: 1; }
+    .sidebar nav a { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: var(--radius-sm); color: var(--fg-2); font-size: 14px; font-weight: 500; text-decoration: none; transition: all var(--motion-fast); }
+    .sidebar nav a:hover, .sidebar nav a.active { background: var(--accent-soft); color: var(--fg); }
+    .sidebar nav a.active { color: var(--accent); }
+    .sidebar .logout { margin-top: auto; padding: 10px 12px; background: none; border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--muted); font-size: 13px; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: color var(--motion-fast), border-color var(--motion-fast); }
+    .sidebar .logout:hover { color: var(--danger); border-color: var(--danger); }
+    .main { flex: 1; padding: 32px; overflow-y: auto; }
+    .main h1 { font-size: 26px; font-weight: 700; font-family: var(--font-display); margin-bottom: 24px; }
+    .toolbar { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; }
+    .toolbar input, .toolbar select { background: var(--surface-2); color: var(--fg); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 10px 14px; font-size: 13px; transition: border-color var(--motion-fast), box-shadow var(--motion-fast); }
+    .toolbar input:focus, .toolbar select:focus { outline: none; border-color: var(--accent); box-shadow: var(--focus-ring); }
+    .toolbar input { flex: 1; min-width: 200px; }
+    .btn-primary { padding: 10px 18px; background: var(--accent); color: var(--accent-on); border: none; border-radius: var(--radius-sm); font-size: 13px; font-weight: 600; cursor: pointer; transition: background var(--motion-fast); }
+    .btn-primary:hover { background: var(--accent-hover); }
+    .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    thead th { text-align: left; padding: 12px 14px; color: var(--muted); font-weight: 500; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 1px solid var(--border); font-family: var(--font-mono); }
+    tbody td { padding: 12px 14px; border-bottom: 1px solid var(--border); }
+    tbody tr { transition: background var(--motion-fast); cursor: pointer; }
+    tbody tr:hover { background: var(--surface-2); }
+    .status-badge { display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px; border-radius: var(--radius-pill); font-size: 11px; font-weight: 500; transition: background var(--motion-fast); }
+    .status-badge.lead { background: rgba(183,121,31,0.10); color: var(--warn); }
+    .status-badge.agendado { background: rgba(17,17,17,0.06); color: var(--accent); }
+    .status-badge.realizado { background: rgba(22,138,70,0.10); color: var(--success); }
+    .status-badge.retorno { background: rgba(58,58,58,0.08); color: var(--fg-2); }
+    .status-badge.inativo { background: rgba(112,112,112,0.08); color: var(--muted); }
+    .empty-state { text-align: center; padding: 48px; color: var(--muted); }
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); display: none; place-items: center; z-index: 100; transition: opacity var(--motion-fast); }
+    .modal-overlay.active { display: grid; }
+    .modal { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 32px; width: 100%; max-width: 480px; max-height: 90vh; overflow-y: auto; transition: transform var(--motion-fast), opacity var(--motion-fast); }
+    .modal h2 { font-size: 18px; margin-bottom: 20px; }
+    .modal .field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; }
+    .modal .field label { font-size: 12px; color: var(--fg-2); font-weight: 500; }
+    .modal .field input, .modal .field select { background: var(--surface-2); color: var(--fg); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 10px 12px; font-size: 13px; transition: border-color var(--motion-fast), box-shadow var(--motion-fast); }
+    .modal .field input:focus, .modal .field select:focus { outline: none; border-color: var(--accent); box-shadow: var(--focus-ring); }
+    .modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 20px; }
+    .btn-sec { padding: 10px 18px; background: transparent; color: var(--fg); border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 13px; cursor: pointer; transition: background var(--motion-fast), border-color var(--motion-fast); }
+    .btn-sec:hover { border-color: var(--fg-2); }
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="sidebar-logo"><span>🗣️</span> FonoCRM</div>
+      <nav>
+        <a href="dashboard.html">📊 Dashboard</a>
+        <a href="pacientes.html" class="active">👥 Pacientes</a>
+        <a href="kanban.html">📋 Kanban</a>
+        <a href="agenda.html">📅 Agenda</a>
+        <a href="relatorios.html">📈 Relatórios</a>
+      </nav>
+      <a href="#" onclick="sair();return false;" style="display:flex;align-items:center;gap:8px;margin-top:auto;padding:10px 12px;background:none;border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--muted);font-size:13px;cursor:pointer;text-decoration:none;">🚪 Sair</a>
+    </aside>
+    <main class="main">
+      <h1>Pacientes</h1>
+      <div class="toolbar">
+        <input type="text" id="searchInput" placeholder="Buscar por nome, responsável ou WhatsApp..." />
+        <select id="statusFilter">
+          <option value="">Todos os status</option>
+          <option value="lead">📥 Lead</option>
+          <option value="agendado">📅 Agendado</option>
+          <option value="realizado">✅ Realizado</option>
+          <option value="retorno">🔄 Retorno</option>
+          <option value="inativo">❌ Inativo</option>
+        </select>
+        <button class="btn-primary" id="btnNovoPaciente">➕ Novo Paciente</button>
+      </div>
+      <div id="tableContainer"></div>
+    </main>
+  </div>
+
+  <div class="modal-overlay" id="modalOverlay">
+    <div class="modal">
+      <h2 id="modalTitle">Novo Paciente</h2>
+      <form id="pacienteForm">
+        <input type="hidden" id="pacienteId" />
+        <div class="field"><label>Nome do paciente</label><input type="text" id="fNome" required /></div>
+        <div class="field"><label>Nome do responsável</label><input type="text" id="fResponsavel" /></div>
+        <div class="field"><label>Data de Nascimento</label><input type="date" id="fNascimento" /></div>
+        <div class="field"><label>WhatsApp</label><input type="text" id="fWhatsapp" /></div>
+        <div class="field"><label>Pedido médico</label>
+          <div style="display:flex;gap:16px;padding:6px 0;">
+            <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;"><input type="radio" name="fPedidoMedico" id="pedidoSim" value="sim" /> Sim</label>
+            <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;"><input type="radio" name="fPedidoMedico" id="pedidoNao" value="nao" checked /> Não</label>
+          </div>
+        </div>
+        <div id="pedidoUploadArea" class="field" style="display:none; border:1px dashed var(--border); border-radius:var(--radius-sm); padding:14px; margin-bottom:14px;">
+          <label style="font-size:12px;color:var(--fg-2);font-weight:500;margin-bottom:8px;display:block;">Arquivo do pedido médico (PDF)</label>
+          <input type="file" id="fPedidoFile" accept=".pdf" style="font-size:12px;color:var(--fg-2);width:100%;" />
+          <div id="pedidoFileInfo" style="display:none;margin-top:8px;font-size:12px;color:var(--fg-2);"></div>
+          <button type="button" id="btnVerPedido" class="btn-sec" style="display:none;margin-top:8px;font-size:12px;padding:6px 12px;">👁️ Visualizar Pedido</button>
+          <input type="hidden" id="fPedidoFileData" />
+        </div>
+        <div class="field"><label>Exame / Procedimento</label><input type="text" id="fProcedimento" /></div>
+        <div class="field"><label>Status</label>
+          <select id="fStatus">
+            <option value="lead">📥 Lead</option>
+            <option value="agendado">📅 Agendado</option>
+            <option value="realizado">✅ Realizado</option>
+            <option value="retorno">🔄 Retorno</option>
+            <option value="inativo">❌ Inativo</option>
+          </select>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn-sec" id="btnCancelar">Cancelar</button>
+          <button type="button" class="btn-primary" id="btnSalvar">Salvar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      function sair() { window.location.href = 'login.html'; }
+      function getData(key) { try { return JSON.parse(localStorage.getItem(key)) || []; } catch(_) { return []; } }
+      function saveData(key, data) { localStorage.setItem(key, JSON.stringify(data)); }
+      function nextId(arr) { return arr.length > 0 ? Math.max.apply(null, arr.map(function(i) { return i.id; })) + 1 : 1; }
+
+      var pacientes = [];
+
+      function loadPacientes() {
+        try {
+          pacientes = getData('fono_crm_pacientes');
+          var search = (document.getElementById('searchInput').value || '').toLowerCase();
+          var status = document.getElementById('statusFilter').value || '';
+
+          var filtrados = pacientes.filter(function(p) {
+            if (status && (p.status || 'lead') !== status) return false;
+            if (search) {
+              return (p.nome || '').toLowerCase().indexOf(search) !== -1 ||
+                     (p.responsavel || '').toLowerCase().indexOf(search) !== -1 ||
+                     (p.whatsapp || '').indexOf(search) !== -1;
+            }
+            return true;
+          });
+
+          var container = document.getElementById('tableContainer');
+          if (!container) return;
+          if (filtrados.length === 0) {
+            container.innerHTML = '<div class="empty-state">Nenhum paciente encontrado.</div>';
+            return;
+          }
+
+          var statusLabel = { lead: '📥 Lead', agendado: '📅 Agendado', realizado: '✅ Realizado', retorno: '🔄 Retorno', inativo: '❌ Inativo' };
+          container.innerHTML = '<div class="table-wrap"><table><thead><tr><th>Nome</th><th>Responsável</th><th>WhatsApp</th><th>Exame / Procedimento</th><th>Pedido</th><th>Status</th></tr></thead><tbody>' +
+            filtrados.map(function(p) {
+              var sc = p.status || 'lead';
+              var pedidoIcon = p.pedido_medico === 'sim' ? '<span style="color:var(--success);cursor:help;" title="Com pedido médico">📋 Sim</span>' : '<span style="color:var(--muted);">—</span>';
+              return '<tr onclick="location.href=\'paciente.html?id=' + p.id + '\'"><td><strong>' + (p.nome || '—') + '</strong></td><td>' + (p.responsavel || '—') + '</td><td>' + (p.whatsapp || '—') + '</td><td style="font-size:12px;color:var(--fg-2);">' + (p.procedimento || '—') + '</td><td style="text-align:center;">' + pedidoIcon + '</td><td><span class="status-badge ' + sc + '">' + (statusLabel[sc] || 'Lead') + '</span></td></tr>';
+            }).join('') + '</tbody></table></div>';
+        } catch(e) { console.error('loadPacientes error:', e); }
+      }
+
+      document.getElementById('searchInput').addEventListener('input', loadPacientes);
+      document.getElementById('statusFilter').addEventListener('change', loadPacientes);
+
+      function togglePedidoUpload() {
+        var sim = document.getElementById('pedidoSim').checked;
+        document.getElementById('pedidoUploadArea').style.display = sim ? 'block' : 'none';
+      }
+      document.getElementById('pedidoSim').addEventListener('change', togglePedidoUpload);
+      document.getElementById('pedidoNao').addEventListener('change', togglePedidoUpload);
+
+      function openModal(p) {
+        document.getElementById('modalOverlay').classList.add('active');
+        document.getElementById('modalTitle').textContent = p ? 'Editar Paciente' : 'Novo Paciente';
+        document.getElementById('pacienteId').value = p ? p.id : '';
+        document.getElementById('fNome').value = p ? p.nome : '';
+        document.getElementById('fResponsavel').value = p ? p.responsavel : '';
+        document.getElementById('fNascimento').value = p ? p.data_nascimento : '';
+        document.getElementById('fWhatsapp').value = p ? p.whatsapp : '';
+        var radios = document.getElementsByName('fPedidoMedico');
+        for (var ri = 0; ri < radios.length; ri++) { radios[ri].checked = radios[ri].value === (p ? (p.pedido_medico || 'nao') : 'nao'); }
+        document.getElementById('fProcedimento').value = p ? p.procedimento : '';
+        document.getElementById('fStatus').value = p ? p.status : 'lead';
+
+        document.getElementById('fPedidoFile').value = '';
+        document.getElementById('pedidoFileInfo').style.display = 'none';
+        document.getElementById('btnVerPedido').style.display = 'none';
+        document.getElementById('fPedidoFileData').value = p && p.pedido_file ? p.pedido_file : '';
+
+        togglePedidoUpload();
+        if (p && p.pedido_medico === 'sim' && p.pedido_file) {
+          document.getElementById('pedidoFileInfo').style.display = 'block';
+          document.getElementById('pedidoFileInfo').textContent = '📎 Pedido anexado';
+          document.getElementById('btnVerPedido').style.display = 'inline-block';
+        }
+      }
+
+      document.getElementById('fPedidoFile').addEventListener('change', function() {
+        var file = this.files[0];
+        if (!file) return;
+        if (file.type !== 'application/pdf') { alert('Apenas arquivos PDF são aceitos.'); this.value = ''; return; }
+        var reader = new FileReader();
+        reader.onload = function(e) {
+          document.getElementById('fPedidoFileData').value = e.target.result;
+          document.getElementById('pedidoFileInfo').style.display = 'block';
+          document.getElementById('pedidoFileInfo').textContent = '📎 ' + file.name + ' (' + (file.size / 1024).toFixed(1) + ' KB)';
+          document.getElementById('btnVerPedido').style.display = 'inline-block';
+        };
+        reader.readAsDataURL(file);
+      });
+
+      document.getElementById('btnVerPedido').addEventListener('click', function() {
+        var data = document.getElementById('fPedidoFileData').value;
+        if (data) window.open(data, '_blank');
+      });
+
+      function closeModal() {
+        document.getElementById('modalOverlay').classList.remove('active');
+      }
+
+      document.getElementById('modalOverlay').addEventListener('click', function(e) {
+        if (e.target === e.currentTarget) closeModal();
+      });
+
+      document.getElementById('btnNovoPaciente').addEventListener('click', function() { openModal(null); });
+      document.getElementById('btnCancelar').addEventListener('click', closeModal);
+      document.getElementById('btnSalvar').addEventListener('click', function() {
+        try {
+          var nome = document.getElementById('fNome').value.trim();
+          if (!nome) { alert('Informe o nome do paciente.'); return; }
+
+          var idEl = document.getElementById('pacienteId');
+          var id = idEl.value;
+          var lista = getData('fono_crm_pacientes');
+          if (!Array.isArray(lista)) lista = [];
+
+          var pedidoRadios = document.getElementsByName('fPedidoMedico');
+          var pedidoMedico = 'nao';
+          for (var ri = 0; ri < pedidoRadios.length; ri++) { if (pedidoRadios[ri].checked) { pedidoMedico = pedidoRadios[ri].value; break; } }
+          var payload = {
+            nome: nome,
+            responsavel: document.getElementById('fResponsavel').value,
+            data_nascimento: document.getElementById('fNascimento').value || null,
+            whatsapp: document.getElementById('fWhatsapp').value,
+            pedido_medico: pedidoMedico,
+            pedido_file: pedidoMedico === 'sim' ? document.getElementById('fPedidoFileData').value : '',
+            procedimento: document.getElementById('fProcedimento').value,
+            status: document.getElementById('fStatus').value,
+          };
+
+          if (id) {
+            var idx = -1;
+            for (var i = 0; i < lista.length; i++) { if (String(lista[i].id) === String(id)) { idx = i; break; } }
+            if (idx !== -1) {
+              for (var k in payload) lista[idx][k] = payload[k];
+            }
+          } else {
+            payload.id = nextId(lista);
+            payload.created_at = new Date().toISOString();
+            lista.push(payload);
+          }
+
+          saveData('fono_crm_pacientes', lista);
+          closeModal();
+          loadPacientes();
+        } catch(e) { alert('Erro ao salvar: ' + e.message); }
+      });
+
+      var seedData = getData('fono_crm_seed');
+      if (!seedData) {
+        var pacientesSeed = [
+          { id: 1, nome: 'Ana Beatriz Silva', responsavel: 'Maria Silva', data_nascimento: '1990-05-12', whatsapp: '(11) 98765-4321', pedido_medico: 'sim', procedimento: 'Avaliação Fonoaudiológica', status: 'realizado', created_at: '2025-01-15T10:00:00Z' },
+          { id: 2, nome: 'Carlos Eduardo Lima', responsavel: 'Joana Lima', data_nascimento: '1985-08-22', whatsapp: '(11) 97654-3210', pedido_medico: 'sim', procedimento: 'Terapia de Linguagem', status: 'lead', created_at: '2025-02-20T14:30:00Z' },
+          { id: 3, nome: 'Daniela Oliveira', responsavel: 'Paulo Oliveira', data_nascimento: '1993-11-03', whatsapp: '(11) 96543-2109', pedido_medico: 'nao', procedimento: 'Acompanhamento Fonoterápico', status: 'agendado', created_at: '2025-03-10T09:15:00Z' },
+          { id: 4, nome: 'Eduardo Santos', responsavel: 'Lucia Santos', data_nascimento: '1978-02-14', whatsapp: '(11) 95432-1098', pedido_medico: 'sim', procedimento: 'Reabilitação Auditiva', status: 'retorno', created_at: '2025-01-25T16:45:00Z' },
+          { id: 5, nome: 'Fernanda Costa', responsavel: '—', data_nascimento: '2000-07-30', whatsapp: '(11) 94321-0987', pedido_medico: 'nao', procedimento: 'Avaliação de Voz', status: 'inativo', created_at: '2024-11-05T11:20:00Z' },
+          { id: 6, nome: 'Gabriel Almeida', responsavel: '—', data_nascimento: '1995-04-18', whatsapp: '(11) 93210-9876', pedido_medico: 'nao', procedimento: 'Terapia de Fluência', status: 'lead', created_at: '2025-04-01T08:00:00Z' },
+          { id: 7, nome: 'Helena Martins', responsavel: 'Roberto Martins', data_nascimento: '1982-09-25', whatsapp: '(11) 92109-8765', pedido_medico: 'sim', procedimento: 'Fonoterapia', status: 'agendado', created_at: '2025-03-22T13:30:00Z' }
+        ];
+        saveData('fono_crm_pacientes', pacientesSeed);
+        saveData('fono_crm_seed', true);
+      }
+
+      loadPacientes();
+    });
+  </script>
+</body>
+</html>

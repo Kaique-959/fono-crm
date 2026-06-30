@@ -1,0 +1,228 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>FonoCRM — Dashboard</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #fbf6ee; --surface: #fffdf8; --surface-warm: #f1e3cf;
+      --fg: #201914; --fg-2: #4c4037; --muted: #7a6d63;
+      --meta: #9b5b32; --border: #ded2c3; --border-soft: #eee4d7;
+      --accent: #9b5b32; --accent-on: #ffffff;
+      --accent-hover: color-mix(in oklab, var(--accent), black 8%);
+      --accent-active: color-mix(in oklab, var(--accent), black 14%);
+      --accent-soft: rgba(155,91,50,0.08);
+      --success: #4f8a4f; --warn: #c9822f; --danger: #b33a3a;
+      --font-display: Georgia, "Times New Roman", serif;
+      --font-body: Inter, system-ui, sans-serif;
+      --font-mono: "SF Mono", ui-monospace, Menlo, monospace;
+      --radius-sm: 10px; --radius-md: 16px; --radius-lg: 24px; --radius-pill: 9999px;
+      --focus-ring: 0 0 0 4px rgba(155,91,50,0.24);
+      --motion-fast: 150ms; --motion-base: 240ms;
+      --ease-standard: cubic-bezier(0.2,0,0,1);
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body { height: 100%; margin: 0; }
+    body {
+      background: var(--bg); color: var(--fg);
+      font-family: var(--font-body); font-size: var(--text-base); line-height: var(--leading-body);
+      -webkit-font-smoothing: antialiased;
+    }
+    .layout { display: flex; min-height: 100vh; }
+    .sidebar {
+      width: 240px; background: var(--surface);
+      border-right: 1px solid var(--border);
+      padding: 24px 16px;
+      display: flex; flex-direction: column;
+      flex-shrink: 0;
+    }
+    .sidebar-logo { display: flex; align-items: center; gap: 10px; font-size: 19px; font-weight: 700; font-family: var(--font-display); margin-bottom: 32px; padding: 0 8px; }
+    .sidebar-logo span { font-size: 22px; }
+    .sidebar nav { display: flex; flex-direction: column; gap: 4px; flex: 1; }
+    .sidebar nav a {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 12px; border-radius: var(--radius-sm);
+      color: var(--fg-2); font-size: 14px; font-weight: 500;
+      text-decoration: none; transition: all var(--motion-fast) var(--ease-standard);
+    }
+    .sidebar nav a:hover, .sidebar nav a.active { background: var(--accent-soft); color: var(--fg); }
+    .sidebar nav a.active { color: var(--accent); }
+    .sidebar .logout {
+      margin-top: auto; padding: 10px 12px;
+      background: none; border: 1px solid var(--border);
+      border-radius: var(--radius-sm); color: var(--muted);
+      font-size: 13px; cursor: pointer;
+      display: flex; align-items: center; gap: 8px;
+      transition: color var(--motion-fast), border-color var(--motion-fast);
+    }
+    .sidebar .logout:hover { color: var(--danger); border-color: var(--danger); }
+    .main { flex: 1; padding: 32px; overflow-y: auto; }
+    .main h1 { font-size: 26px; font-weight: 700; font-family: var(--font-display); margin-bottom: 24px; }
+    .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
+    @media (max-width: 1024px) { .kpi-grid { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 600px) { .kpi-grid { grid-template-columns: 1fr; } }
+    .kpi-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 20px; transition: border-color var(--motion-fast), box-shadow var(--motion-fast); }
+    .kpi-card:hover { border-color: var(--accent); box-shadow: var(--elev-raised); }
+    .kpi-card .kpi-label { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; font-family: var(--font-mono); margin-bottom: 8px; }
+    .kpi-card .kpi-value { font-size: 28px; font-weight: 700; font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+    .kpi-card .kpi-icon { font-size: 20px; margin-bottom: 12px; }
+    .charts-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px; }
+    @media (max-width: 768px) { .charts-row { grid-template-columns: 1fr; } }
+    .chart-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 20px; transition: border-color var(--motion-fast); }
+    .chart-card:hover { border-color: var(--accent); }
+    .chart-card h3 { font-size: 14px; font-weight: 600; margin-bottom: 16px; color: var(--fg-2); }
+    .chart-card canvas { max-height: 260px; }
+    .feed-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 20px; transition: border-color var(--motion-fast); }
+    .feed-card:hover { border-color: var(--accent); }
+    .feed-card h3 { font-size: 14px; font-weight: 600; margin-bottom: 16px; color: var(--fg-2); }
+    .feed-item { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--border); }
+    .feed-item:last-child { border-bottom: none; }
+    .feed-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+    .feed-dot.blue { background: var(--accent); }
+    .feed-dot.green { background: var(--success); }
+    .feed-dot.yellow { background: var(--warn); }
+    .feed-text { flex: 1; font-size: 13px; }
+    .feed-text strong { color: var(--fg); }
+    .feed-text .meta { color: var(--muted); font-size: 12px; display: block; margin-top: 2px; }
+    .quick-actions { display: flex; gap: 12px; margin-bottom: 24px; }
+    .quick-btn { display: flex; align-items: center; gap: 8px; padding: 10px 18px; background: var(--accent); color: var(--accent-on); border: none; border-radius: var(--radius-sm); font-size: 13px; font-weight: 600; cursor: pointer; transition: background var(--motion-fast); }
+    .quick-btn:hover { background: var(--accent-hover); }
+    .quick-btn.sec { background: transparent; color: var(--fg); border: 1px solid var(--border); transition: background var(--motion-fast), border-color var(--motion-fast); }
+    .quick-btn.sec:hover { border-color: var(--fg-2); }
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="sidebar-logo"><span>🗣️</span> FonoCRM</div>
+      <nav>
+        <a href="dashboard.html" class="active">📊 Dashboard</a>
+        <a href="pacientes.html">👥 Pacientes</a>
+        <a href="kanban.html">📋 Kanban</a>
+        <a href="agenda.html">📅 Agenda</a>
+        <a href="relatorios.html">📈 Relatórios</a>
+      </nav>
+      <a href="#" onclick="sair();return false;" style="display:flex;align-items:center;gap:8px;margin-top:auto;padding:10px 12px;background:none;border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--muted);font-size:13px;cursor:pointer;text-decoration:none;">🚪 Sair</a>
+    </aside>
+    <main class="main">
+      <h1>Dashboard</h1>
+      <div class="quick-actions">
+        <button class="quick-btn" onclick="location.href='pacientes.html'">➕ Novo Paciente</button>
+        <button class="quick-btn sec" onclick="location.href='agenda.html'">📅 Novo Agendamento</button>
+      </div>
+      <div class="kpi-grid" id="kpiGrid">
+        <div class="kpi-card"><div class="kpi-icon">👥</div><div class="kpi-label">Total de Pacientes</div><div class="kpi-value" id="kpiPacientes">—</div></div>
+        <div class="kpi-card"><div class="kpi-icon">📅</div><div class="kpi-label">Agendamentos Hoje</div><div class="kpi-value" id="kpiHoje">—</div></div>
+        <div class="kpi-card"><div class="kpi-icon">💰</div><div class="kpi-label">Faturamento (mês)</div><div class="kpi-value" id="kpiFaturamento">—</div></div>
+        <div class="kpi-card"><div class="kpi-icon">🔥</div><div class="kpi-label">Novos Leads (semana)</div><div class="kpi-value" id="kpiLeads">—</div></div>
+      </div>
+      <div class="charts-row">
+        <div class="chart-card"><h3>Agendamentos por Dia</h3><canvas id="chartLinha"></canvas></div>
+        <div class="chart-card"><h3>Exames por Tipo</h3><canvas id="chartPizza"></canvas></div>
+      </div>
+      <div class="feed-card">
+        <h3>Atividades Recentes</h3>
+        <div id="feedList"></div>
+      </div>
+    </main>
+  </div>
+  <script>
+    function sair() { window.location.href = 'login.html'; }
+
+    function getData(key) {
+      try { return JSON.parse(localStorage.getItem(key)) || []; } catch(_) { return []; }
+    }
+
+    function saveData(key, data) {
+      localStorage.setItem(key, JSON.stringify(data));
+    }
+
+    function loadDashboard() {
+      var pacientes = getData('fono_crm_pacientes');
+      var consultas = getData('fono_crm_consultas');
+
+      var hoje = new Date().toISOString().split('T')[0];
+      var inicioMes = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0];
+      var inicioSemana = new Date(Date.now() - 7 * 86400000).toISOString().split('T')[0];
+
+      var totalPacientes = pacientes.length;
+      var consultasHoje = consultas.filter(function(c) { return c.data.startsWith(hoje); }).length;
+      var faturamentoMes = consultas.filter(function(c) { return c.data >= inicioMes; }).reduce(function(s, c) { return s + (parseFloat(c.valor) || 0); }, 0);
+      var novosLeads = pacientes.filter(function(p) {
+        return p.created_at && p.created_at >= inicioSemana;
+      }).length;
+
+      document.getElementById('kpiPacientes').textContent = totalPacientes;
+      document.getElementById('kpiHoje').textContent = consultasHoje;
+      document.getElementById('kpiFaturamento').textContent = 'R$ ' + faturamentoMes.toLocaleString('pt-BR', { minimumFractionDigits: 2 });
+      document.getElementById('kpiLeads').textContent = novosLeads;
+
+      var chartLinhaEl = document.getElementById('chartLinha');
+      var agruparDia = {};
+      consultas.forEach(function(c) {
+        var dia = c.data.split('T')[0];
+        agruparDia[dia] = (agruparDia[dia] || 0) + 1;
+      });
+      var dias = Object.keys(agruparDia).sort();
+      var counts = dias.map(function(d) { return agruparDia[d]; });
+
+      new Chart(chartLinhaEl, {
+        type: 'line',
+        data: {
+          labels: dias.map(function(d) { return d.slice(5); }),
+          datasets: [{
+            label: 'Agendamentos', data: counts,
+            borderColor: '#9b5b32', backgroundColor: 'rgba(155,91,50,0.06)',
+            fill: true, tension: 0.3, pointRadius: 3,
+          }]
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { ticks: { color: '#707070', font: { size: 11 } }, grid: { color: '#d9d9d9' } },
+            y: { ticks: { color: '#707070', font: { size: 11 } }, grid: { color: '#d9d9d9' }, beginAtZero: true }
+          }
+        }
+      });
+
+      var examesAgrupar = {};
+      consultas.forEach(function(c) {
+        var exame = c.exame || 'Não informado';
+        examesAgrupar[exame] = (examesAgrupar[exame] || 0) + 1;
+      });
+      var exLabels = Object.keys(examesAgrupar);
+      var exData = Object.values(examesAgrupar);
+      var colors = ['#9b5b32', '#4f8a4f', '#c9822f', '#b33a3a', '#4c4037', '#7a6d63', '#ded2c3'];
+
+      new Chart(document.getElementById('chartPizza'), {
+        type: 'doughnut',
+        data: { labels: exLabels, datasets: [{ data: exData, backgroundColor: colors.slice(0, exLabels.length) }] },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          plugins: { legend: { position: 'bottom', labels: { color: '#3a3a3a', font: { size: 11 } } } }
+        }
+      });
+
+      var feed = document.getElementById('feedList');
+      var recentes = consultas.slice().sort(function(a, b) { return b.data.localeCompare(a.data); }).slice(0, 8);
+      if (recentes.length === 0) {
+        feed.innerHTML = '<p style="color: var(--muted); font-size: 13px;">Nenhuma atividade recente.</p>';
+        return;
+      }
+      feed.innerHTML = recentes.map(function(c) {
+        var dataStr = new Date(c.data).toLocaleDateString('pt-BR');
+        var dot = c.status === 'realizado' ? 'green' : c.status === 'agendado' ? 'blue' : 'yellow';
+        return '<div class="feed-item"><div class="feed-dot ' + dot + '"></div><div class="feed-text"><strong>' + (c.paciente_nome || 'Paciente') + '</strong> — ' + (c.exame || 'Consulta') + '<span class="meta">' + dataStr + ' · ' + (c.status || 'agendado') + '</span></div></div>';
+      }).join('');
+    }
+
+    loadDashboard();
+  </script>
+</body>
+</html>

@@ -1,0 +1,212 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>FonoCRM — Entrar</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #fbf6ee; --surface: #fffdf8; --surface-warm: #f1e3cf;
+      --fg: #201914; --fg-2: #4c4037; --muted: #7a6d63;
+      --meta: #9b5b32; --border: #ded2c3; --border-soft: #eee4d7;
+      --accent: #9b5b32; --accent-on: #ffffff;
+      --accent-hover: color-mix(in oklab, var(--accent), black 8%);
+      --accent-active: color-mix(in oklab, var(--accent), black 14%);
+      --accent-soft: rgba(155,91,50,0.08);
+      --danger: #b33a3a;
+      --font-display: Georgia, "Times New Roman", serif;
+      --font-body: Inter, system-ui, sans-serif;
+      --text-base: 17px;
+      --leading-body: 1.62;
+      --radius-sm: 10px; --radius-md: 16px; --radius-lg: 24px;
+      --elev-raised: 0 20px 52px rgba(32,25,20,0.12);
+      --focus-ring: 0 0 0 4px rgba(155,91,50,0.24);
+      --motion-fast: 150ms; --motion-base: 240ms;
+      --ease-standard: cubic-bezier(0.2,0,0,1);
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body { height: 100%; margin: 0; }
+    body {
+      background: var(--bg);
+      color: var(--fg);
+      font-family: var(--font-body);
+      font-size: var(--text-base);
+      line-height: var(--leading-body);
+      display: grid;
+      place-items: center;
+      -webkit-font-smoothing: antialiased;
+      padding: 16px;
+    }
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 48px 40px;
+      width: 100%;
+      max-width: 400px;
+      text-align: center;
+      transition: transform var(--motion-fast), box-shadow var(--motion-fast);
+    }
+    .card:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--elev-raised);
+    }
+    .logo-wrap {
+      width: 72px; height: 72px;
+      background: var(--accent-soft);
+      border-radius: var(--radius-md);
+      display: grid; place-items: center;
+      margin: 0 auto 20px;
+      font-size: 32px;
+    }
+    .card h1 {
+      font-size: 24px; font-weight: 700;
+      font-family: var(--font-display);
+      margin: 0 0 4px;
+    }
+    .card p.sub {
+      color: var(--muted);
+      font-size: 14px;
+      margin: 0 0 32px;
+    }
+    .field-group {
+      text-align: left;
+      margin-bottom: 20px;
+    }
+    .field-group label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--fg-2);
+      margin-bottom: 6px;
+    }
+    .field-group input {
+      width: 100%;
+      padding: 12px 14px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      background: var(--surface);
+      color: var(--fg);
+      font-family: var(--font-body);
+      font-size: 15px;
+      outline: none;
+      transition: border-color var(--motion-fast), box-shadow var(--motion-fast);
+    }
+    .field-group input::placeholder {
+      color: var(--muted);
+    }
+    .field-group input:focus {
+      border-color: var(--accent);
+      box-shadow: var(--focus-ring);
+    }
+    .field-group .error-msg {
+      font-size: 12px;
+      color: var(--danger);
+      margin-top: 4px;
+      display: none;
+    }
+    .field-group .error-msg.show {
+      display: block;
+    }
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+      width: 100%;
+      padding: 14px 32px; border: none;
+      border-radius: var(--radius-sm); background: var(--accent);
+      color: var(--accent-on); font-size: 15px; font-weight: 600;
+      cursor: pointer; text-decoration: none;
+      transition: background var(--motion-fast), opacity var(--motion-fast);
+    }
+    .btn:hover { background: var(--accent-hover); }
+    .btn:active { background: var(--accent-active); }
+    .btn:disabled { opacity: .5; cursor: not-allowed; }
+    .error-banner {
+      background: color-mix(in oklab, var(--danger), transparent 88%);
+      border: 1px solid color-mix(in oklab, var(--danger), transparent 60%);
+      color: var(--danger);
+      border-radius: var(--radius-sm);
+      padding: 10px 14px;
+      font-size: 13px;
+      margin-bottom: 20px;
+      display: none;
+      text-align: center;
+    }
+    .error-banner.show { display: block; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="logo-wrap">🗣️</div>
+    <h1>FonoCRM</h1>
+    <p class="sub">CRM completo para sua clínica de Fonoaudiologia</p>
+
+    <div class="error-banner" id="errorBanner"></div>
+
+    <form id="loginForm" novalidate>
+      <div class="field-group">
+        <label for="email">E-mail</label>
+        <input type="email" id="email" placeholder="seu@email.com" autocomplete="email" required />
+        <div class="error-msg" id="emailError">Insira um e-mail válido</div>
+      </div>
+      <div class="field-group">
+        <label for="password">Senha</label>
+        <input type="password" id="password" placeholder="Sua senha" autocomplete="current-password" required />
+        <div class="error-msg" id="passError">A senha é obrigatória</div>
+      </div>
+      <button type="submit" class="btn" id="loginBtn">Entrar</button>
+    </form>
+
+  </div>
+
+  <script>
+    const form = document.getElementById('loginForm');
+    const email = document.getElementById('email');
+    const password = document.getElementById('password');
+    const emailError = document.getElementById('emailError');
+    const passError = document.getElementById('passError');
+    const errorBanner = document.getElementById('errorBanner');
+    const loginBtn = document.getElementById('loginBtn');
+
+    function limparErros() {
+      emailError.classList.remove('show');
+      passError.classList.remove('show');
+      errorBanner.classList.remove('show');
+    }
+
+    function mostrarErro(campo, msg) {
+      errorBanner.textContent = msg;
+      errorBanner.classList.add('show');
+    }
+
+    form.addEventListener('submit', function(e) {
+      e.preventDefault();
+      limparErros();
+      loginBtn.disabled = true;
+
+      let valido = true;
+
+      if (!email.value.trim() || !email.validity.valid) {
+        emailError.classList.add('show');
+        valido = false;
+      }
+      if (!password.value.trim()) {
+        passError.classList.add('show');
+        valido = false;
+      }
+
+      if (!valido) {
+        loginBtn.disabled = false;
+        return;
+      }
+
+      mostrarErro('email', 'Backend de autenticação ainda não conectado.');
+      loginBtn.disabled = false;
+    });
+
+
+  </script>
+</body>
+</html>

@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "kind": "html",
+  "title": "paciente.html",
+  "entry": "paciente.html",
+  "renderer": "html",
+  "status": "complete",
+  "exports": [
+    "html",
+    "pdf",
+    "zip"
+  ],
+  "createdAt": "2026-06-29T14:37:09.043Z",
+  "updatedAt": "2026-06-29T14:37:09.043Z",
+  "metadata": {
+    "inferred": true,
+    "reconciled": true
+  }
+}
