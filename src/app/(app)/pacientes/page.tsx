@@ -77,24 +77,27 @@ export default function PacientesPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold font-display mb-6">Pacientes</h1>
-      <div className="flex items-center gap-3 mb-5 flex-wrap">
-        <div className="flex-1 min-w-[200px] relative">
-          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: 'var(--muted)' }} />
-          <input className="pl-9" placeholder="Buscar por nome, responsável ou WhatsApp..." value={search} onChange={e => setSearch(e.target.value)} />
+      <div className="flex items-center justify-between mb-5">
+        <h1 className="text-xl sm:text-2xl font-bold font-display">Pacientes</h1>
+        <button className="btn-primary text-xs sm:text-sm" onClick={() => openModal()}><Plus size={14} /> Novo</button>
+      </div>
+
+      <div className="flex items-center gap-2 mb-4">
+        <div className="flex-1 relative min-w-0">
+          <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2" style={{ color: 'var(--muted)' }} />
+          <input className="pl-8 text-sm" placeholder="Buscar..." value={search} onChange={e => setSearch(e.target.value)} />
         </div>
-        <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)} className="w-auto">
-          <option value="">Todos os status</option>
+        <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)} className="w-auto text-sm max-w-[120px]">
+          <option value="">Todos</option>
           <option value="lead">📥 Lead</option>
           <option value="agendado">📅 Agendado</option>
           <option value="realizado">✅ Realizado</option>
           <option value="retorno">🔄 Retorno</option>
           <option value="inativo">❌ Inativo</option>
         </select>
-        <button className="btn-primary" onClick={() => openModal()}><Plus size={16} /> Novo Paciente</button>
       </div>
 
-      <div className="overflow-x-auto">
+      <div className="table-desktop overflow-x-auto">
         <table className="w-full text-sm" style={{ borderCollapse: 'collapse' }}>
           <thead>
             <tr>
@@ -119,6 +122,24 @@ export default function PacientesPage() {
             ))}
           </tbody>
         </table>
+      </div>
+
+      <div className="table-mobile-cards">
+        {pacientes.length === 0 ? (
+          <p className="text-center py-8 text-sm" style={{ color: 'var(--muted)' }}>Nenhum paciente encontrado.</p>
+        ) : pacientes.map(p => (
+          <div key={p.id} className="card-paciente" onClick={() => window.location.href = `/pacientes/${p.id}`}>
+            <div className="flex items-center justify-between">
+              <strong className="text-sm">{p.nome}</strong>
+              <span className={`status-badge ${p.status} text-[10px]`}>{statusLabel[p.status] || 'Lead'}</span>
+            </div>
+            <div className="flex items-center gap-3 text-xs" style={{ color: 'var(--muted)' }}>
+              {p.responsavel && <span>👤 {p.responsavel}</span>}
+              {p.whatsapp && <span>📱 {p.whatsapp}</span>}
+              {p.pedido_medico === 'sim' && <span style={{ color: 'var(--success)' }}>📋 Pedido</span>}
+            </div>
+          </div>
+        ))}
       </div>
 
       {showModal && (
