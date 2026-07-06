@@ -24,7 +24,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="flex min-h-screen">
-      <aside className="w-60 bg-surface border-r border-border flex flex-col flex-shrink-0 p-6 fixed h-screen">
+      <aside className="hidden lg:flex w-60 bg-surface border-r border-border flex-col flex-shrink-0 p-6 fixed h-screen">
         <div className="flex items-center gap-2.5 text-lg font-bold font-display mb-8 px-2">
           <span>🗣️</span> FonoCRM
         </div>
@@ -52,9 +52,27 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           Sair
         </button>
       </aside>
-      <main className="flex-1 ml-60 p-8 overflow-y-auto">
+
+      <main className="flex-1 lg:ml-60 p-4 sm:p-8 pb-[calc(var(--nav-height)+env(safe-area-inset-bottom,0)+16px)] lg:pb-8 overflow-y-auto">
         {children}
       </main>
+
+      <nav className="botton-nav">
+        {links.map((link) => {
+          const Icon = link.icon
+          const isActive = pathname.startsWith(link.href)
+          return (
+            <Link key={link.href} href={link.href} className={isActive ? 'active' : ''}>
+              <Icon size={20} />
+              <span>{link.label}</span>
+            </Link>
+          )
+        })}
+        <button onClick={handleLogout} className="flex flex-col items-center justify-center gap-0.5 text-[10px] font-medium no-underline transition-colors relative" style={{ color: 'var(--muted)', minWidth: 48, height: '100%', padding: '4px 8px', background: 'none', border: 'none' }}>
+          <LogOut size={20} />
+          <span>Sair</span>
+        </button>
+      </nav>
     </div>
   )
 }

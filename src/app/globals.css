@@ -31,15 +31,20 @@
   --motion-fast: 150ms;
   --motion-base: 240ms;
   --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --nav-height: 64px;
 }
+
+html { -webkit-tap-highlight-color: transparent; }
 
 body {
   font-size: var(--text-base);
   line-height: 1.62;
+  overscroll-behavior: none;
 }
 
 input, select, textarea {
   @apply w-full px-3 py-2.5 rounded-sm border border-border bg-surface text-fg text-sm transition-colors;
+  font-size: 16px;
 }
 input:focus, select:focus, textarea:focus {
   @apply outline-none border-accent;
@@ -79,3 +84,58 @@ input:focus, select:focus, textarea:focus {
 .status-badge.realizado { background: rgba(22,138,70,0.10); color: var(--success); }
 .status-badge.retorno { background: rgba(58,58,58,0.08); color: var(--fg-2); }
 .status-badge.inativo { background: rgba(112,112,112,0.08); color: var(--muted); }
+
+.botton-nav {
+  @apply fixed bottom-0 left-0 right-0 z-50 bg-surface border-t border-border flex items-center justify-around lg:hidden;
+  height: var(--nav-height);
+  padding-bottom: env(safe-area-inset-bottom, 0);
+}
+
+.botton-nav a {
+  @apply flex flex-col items-center justify-center gap-0.5 text-[10px] font-medium no-underline transition-colors relative;
+  color: var(--muted);
+  min-width: 48px;
+  height: 100%;
+  padding: 4px 8px;
+}
+.botton-nav a.active { color: var(--accent); }
+.botton-nav a.active::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 20px;
+  height: 2.5px;
+  border-radius: 0 0 3px 3px;
+  background: var(--accent);
+}
+
+.card-paciente {
+  @apply bg-surface border border-border rounded-md p-4 flex flex-col gap-2 cursor-pointer active:scale-[0.98] transition-transform;
+}
+
+.table-mobile-cards { display: none; }
+@media (max-width: 639px) {
+  .table-desktop { display: none; }
+  .table-mobile-cards { display: flex; flex-direction: column; gap: 10px; }
+}
+
+.horizontal-scroll {
+  @apply flex gap-3 overflow-x-auto pb-2 snap-x snap-mandatory;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+.horizontal-scroll::-webkit-scrollbar { display: none; }
+.horizontal-scroll > * {
+  @apply snap-start;
+  min-width: 75vw;
+  max-width: 320px;
+  flex-shrink: 0;
+}
+
+@media (min-width: 640px) {
+  .horizontal-scroll > * {
+    min-width: 200px;
+  }
+}

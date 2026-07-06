@@ -53,6 +53,7 @@ export default function AgendaPage() {
     const firstDay = new Date(year, month, 1).getDay()
     const daysInMonth = new Date(year, month + 1, 0).getDate()
     const today = new Date().toISOString().split('T')[0]
+    const isMobile = window.innerWidth < 640
     const atendimentosPorDia: Record<string, any[]> = {}
     atendimentos.forEach(a => {
       if (a.data_agendamento) {
@@ -62,24 +63,30 @@ export default function AgendaPage() {
       }
     })
     const dayNames = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb']
-    let cells = dayNames.map(d => `<div class="text-center text-xs font-mono uppercase py-2" style="color:var(--muted)">${d}</div>`).join('')
+    const dayNameShort = ['D', 'S', 'T', 'Q', 'Q', 'S', 'S']
+    const names = isMobile ? dayNameShort : dayNames
+    const cellSize = isMobile ? 'py-1.5 text-[11px]' : 'py-2 text-sm'
+    const dotSize = isMobile ? 'w-0.5 h-0.5' : 'w-1 h-1'
+    let cells = names.map(d => `<div class="text-center text-[10px] sm:text-xs font-mono uppercase py-1.5 sm:py-2" style="color:var(--muted)">${d}</div>`).join('')
     for (let i = firstDay - 1; i >= 0; i--) {
       const prevDate = new Date(year, month, -i)
-      cells += `<div class="text-center py-2 text-xs rounded-sm" style="color:var(--muted);opacity:0.4">${prevDate.getDate()}</div>`
+      cells += `<div class="text-center ${cellSize} rounded-sm" style="color:var(--muted);opacity:0.4">${prevDate.getDate()}</div>`
     }
     for (let d = 1; d <= daysInMonth; d++) {
       const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`
       const isToday = dateStr === today
       const isSelected = dateStr === selectedDate
       const hasEvent = atendimentosPorDia[dateStr]
-      cells += `<div class="text-center py-2 text-sm rounded-sm cursor-pointer transition-colors relative ${isToday ? 'border' : ''} ${isSelected ? 'bg-accent-soft text-accent font-bold' : 'hover:bg-surface-2'}" style="${isToday ? 'border-color:var(--accent)' : ''}" onclick="window.handleDayClick('${dateStr}')">${d}${hasEvent ? '<div class="w-1 h-1 rounded-full mx-auto mt-0.5" style="background:var(--accent)"></div>' : ''}</div>`
+      const count = hasEvent?.length || 0
+      cells += `<div class="text-center ${cellSize} rounded-sm cursor-pointer transition-colors relative ${isToday ? 'border' : ''} ${isSelected ? 'bg-accent-soft text-accent font-bold' : 'hover:bg-surface-2'}" style="${isToday ? 'border-color:var(--accent)' : ''}" onclick="window.handleDayClick('${dateStr}')">${d}${hasEvent ? `<div class="flex justify-center gap-0.5 mt-0.5">${count > 1 ? `<span class="text-[8px] font-mono" style="color:var(--accent)">${count}</span>` : `<div class="${dotSize} rounded-full" style="background:var(--accent)"></div>`}</div>` : ''}</div>`
     }
     const totalCells = firstDay + daysInMonth
     const remaining = (7 - (totalCells % 7)) % 7
     for (let d = 1; d <= remaining; d++) {
-      cells += `<div class="text-center py-2 text-xs rounded-sm" style="color:var(--muted);opacity:0.4">${d}</div>`
+      cells += `<div class="text-center ${cellSize} rounded-sm" style="color:var(--muted);opacity:0.4">${d}</div>`
     }
-    document.getElementById('calendarGrid')!.innerHTML = cells
+    const el = document.getElementById('calendarGrid')
+    if (el) el.innerHTML = cells
   }
 
   useEffect(() => { (window as any).handleDayClick = (dateStr: string) => setSelectedDate(dateStr); renderCalendar() }, [atendimentos, selectedDate])
@@ -88,44 +95,44 @@ export default function AgendaPage() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold font-display">Agenda</h1>
-        <button className="btn-primary" onClick={() => setShowModal(true)}>
-          <Plus size={16} /> Novo Agendamento
+      <div className="flex items-center justify-between mb-4 sm:mb-6">
+        <h1 className="text-xl sm:text-2xl font-bold font-display">Agenda</h1>
+        <button className="btn-primary text-xs sm:text-sm whitespace-nowrap" onClick={() => setShowModal(true)}>
+          <Plus size={14} /> Novo
         </button>
       </div>
 
-      <div className="flex items-center gap-4 mb-5">
-        <button className="btn-sec p-2" onClick={() => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1))}>
-          <ChevronLeft size={18} />
+      <div className="flex items-center gap-2 sm:gap-4 mb-4">
+        <button className="btn-sec p-1.5 sm:p-2" onClick={() => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1))}>
+          <ChevronLeft size={16} />
         </button>
-        <h2 className="text-lg font-semibold flex-1 font-display">
+        <h2 className="text-sm sm:text-lg font-semibold flex-1 font-display truncate">
           {currentDate.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })}
         </h2>
-        <button className="btn-sec p-2" onClick={() => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1))}>
-          <ChevronRight size={18} />
+        <button className="btn-sec p-1.5 sm:p-2" onClick={() => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1))}>
+          <ChevronRight size={16} />
         </button>
-        <button className="btn-sec" onClick={() => { setCurrentDate(new Date()); setSelectedDate(new Date().toISOString().split('T')[0]) }}>
+        <button className="btn-sec text-xs sm:text-sm" onClick={() => { setCurrentDate(new Date()); setSelectedDate(new Date().toISOString().split('T')[0]) }}>
           Hoje
         </button>
       </div>
 
-      <div id="calendarGrid" className="grid grid-cols-7 gap-1 mb-6"></div>
+      <div id="calendarGrid" className="grid grid-cols-7 gap-0.5 sm:gap-1 mb-4 sm:mb-6"></div>
 
-      <div className="bg-surface border border-border rounded-md p-5 hover:border-accent transition-colors">
-        <h3 className="text-sm font-semibold mb-4" style={{ color: 'var(--fg-2)' }}>
-          Programação de {new Date(selectedDate + 'T12:00:00').toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' })}
+      <div className="bg-surface border border-border rounded-md p-4 sm:p-5">
+        <h3 className="text-xs sm:text-sm font-semibold mb-3" style={{ color: 'var(--fg-2)' }}>
+          {new Date(selectedDate + 'T12:00:00').toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' })}
         </h3>
         {dayAtendimentos.length === 0 ? (
           <p style={{ color: 'var(--muted)', fontSize: 13 }}>Nenhum agendamento para este dia.</p>
         ) : dayAtendimentos.map(a => (
-          <div key={a.id} className="flex items-center gap-3 py-3 border-b last:border-b-0 text-sm" style={{ borderColor: 'var(--border)' }}>
-            <span className="font-mono text-xs min-w-[60px]" style={{ color: 'var(--muted)' }}>
+          <div key={a.id} className="flex items-center gap-2 sm:gap-3 py-2.5 sm:py-3 border-b last:border-b-0 text-xs sm:text-sm" style={{ borderColor: 'var(--border)' }}>
+            <span className="font-mono text-[10px] sm:text-xs min-w-[50px] sm:min-w-[60px]" style={{ color: 'var(--muted)' }}>
               {a.data_agendamento ? new Date(a.data_agendamento).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : '—'}
             </span>
-            <div className="flex-1">
-              <strong>{a.pacientes?.nome || a.tipo_exame}</strong>
-              <span className="block text-xs" style={{ color: 'var(--muted)' }}>
+            <div className="flex-1 min-w-0">
+              <strong className="text-xs sm:text-sm">{a.pacientes?.nome || a.tipo_exame}</strong>
+              <span className="block text-[10px] sm:text-xs truncate" style={{ color: 'var(--muted)' }}>
                 {a.tipo_exame} · {a.status}{a.valor ? ` · R$ ${Number(a.valor).toFixed(2)}` : ''}
               </span>
             </div>
