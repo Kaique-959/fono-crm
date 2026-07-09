@@ -58,7 +58,8 @@ export default function AgendaPage() {
   async function handleCreate() {
     if (!form.paciente_id || !form.tipo_exame) return toast.error('Preencha todos os campos')
     const supabase = getSupabaseBrowser()
-    const dataAgendamento = `${selectedDate}T${form.hora}:00`
+    const [hh, mm] = form.hora.split(':')
+    const dataAgendamento = `${selectedDate}T${(hh || '08').padStart(2, '0')}:${(mm || '00').padStart(2, '0')}:00`
     const { data: a, error } = await supabase.from('atendimentos').insert({
       paciente_id: form.paciente_id,
       tipo_exame: form.tipo_exame,
@@ -242,12 +243,8 @@ export default function AgendaPage() {
                 <input type="date" lang="pt-BR" value={selectedDate} onChange={e => setSelectedDate(e.target.value)} />
               </div>
               <div>
-                <label className="text-xs font-medium" style={{ color: 'var(--fg-2)' }}>Horario</label>
-                <div className="flex gap-2 items-center">
-                  <input className="w-16 text-center" placeholder="HH" maxLength={2} value={form.hora.split(':')[0] || ''} onChange={e => { const h = e.target.value.replace(/\D/g, '').slice(0,2); setForm({ ...form, hora: `${h}:${form.hora.split(':')[1] || '00'}` }) }} />
-                  <span className="text-sm" style={{ color: 'var(--muted)' }}>:</span>
-                  <input className="w-16 text-center" placeholder="MM" maxLength={2} value={form.hora.split(':')[1] || ''} onChange={e => { const m = e.target.value.replace(/\D/g, '').slice(0,2); setForm({ ...form, hora: `${form.hora.split(':')[0] || '08'}:${m}` }) }} />
-                </div>
+                <label className="text-xs font-medium" style={{ color: 'var(--fg-2)' }}>Horario (24h)</label>
+                <input type="time" value={form.hora} onChange={e => setForm({ ...form, hora: e.target.value })} />
               </div>
               <div>
                 <label className="text-xs font-medium" style={{ color: 'var(--fg-2)' }}>Valor (R$)</label>
