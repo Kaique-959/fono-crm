@@ -37,7 +37,7 @@ export default function LoginPage() {
             FonoCRM
           </h1>
           <p className="text-xs sm:text-sm mt-1" style={{ color: 'var(--muted)' }}>
-            Dra. Libertad Ramirez — Fonoaudiologia
+            Dra. Libertad Delgado — Fonoaudiologia
           </p>
         </div>
 
@@ -74,7 +74,7 @@ export default function LoginPage() {
         </div>
 
         <p className="text-center text-[10px] sm:text-xs mt-4 sm:mt-6" style={{ color: 'var(--muted)' }}>
-          Dra. Libertad Ramirez — Fonoaudiologia
+          Dra. Libertad Delgado — Fonoaudiologia
         </p>
       </div>
     </div>
