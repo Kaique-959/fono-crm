@@ -1,25 +1,37 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
+import toast from 'react-hot-toast'
 import { getSupabaseBrowser } from '@/lib/supabase'
 import { KANBAN_COLUNAS } from '@/lib/types'
 
 export default function KanbanPage() {
+  const router = useRouter()
   const [pacientes, setPacientes] = useState<any[]>([])
   const [draggedId, setDraggedId] = useState<string | null>(null)
 
   useEffect(() => { loadPacientes() }, [])
 
   async function loadPacientes() {
-    const supabase = getSupabaseBrowser()
-    const { data } = await supabase.from('pacientes').select('*').order('nome')
-    setPacientes(data || [])
+    try {
+      const supabase = getSupabaseBrowser()
+      const { data } = await supabase.from('pacientes').select('*').order('nome')
+      setPacientes(data || [])
+    } catch (e) {
+      console.error('Erro ao carregar pacientes:', e)
+    }
   }
 
   async function updateStatus(id: string, status: string) {
-    const supabase = getSupabaseBrowser()
-    await supabase.from('pacientes').update({ status }).eq('id', id)
-    loadPacientes()
+    try {
+      const supabase = getSupabaseBrowser()
+      const { error } = await supabase.from('pacientes').update({ status }).eq('id', id)
+      if (error) throw error
+      loadPacientes()
+    } catch (e: any) {
+      toast.error('Erro ao atualizar status: ' + e.message)
+    }
   }
 
   return (
@@ -46,7 +58,7 @@ export default function KanbanPage() {
                 <div key={p.id} className="bg-surface-2 border border-border rounded-sm p-3 mb-2 cursor-grab active:cursor-grabbing hover:border-accent transition-colors text-sm"
                   draggable
                   onDragStart={e => { setDraggedId(p.id); e.dataTransfer.effectAllowed = 'move' }}
-                  onClick={() => window.location.href = `/pacientes/${p.id}`}>
+                  onClick={() => router.push(`/pacientes/${p.id}`)}>
                   <div className="font-semibold mb-1">{p.nome}</div>
                   <div className="font-mono text-xs" style={{ color: 'var(--muted)' }}>
                     {p.whatsapp || '—'}
@@ -76,7 +88,7 @@ export default function KanbanPage() {
                 <div key={p.id} className="bg-surface-2 border border-border rounded-sm p-3 mb-2 cursor-grab active:cursor-grabbing hover:border-accent transition-colors text-sm"
                   draggable
                   onDragStart={e => { setDraggedId(p.id); e.dataTransfer.effectAllowed = 'move' }}
-                  onClick={() => window.location.href = `/pacientes/${p.id}`}>
+                  onClick={() => router.push(`/pacientes/${p.id}`)}>
                   <div className="font-semibold mb-1">{p.nome}</div>
                   <div className="font-mono text-xs" style={{ color: 'var(--muted)' }}>
                     {p.whatsapp || '—'}

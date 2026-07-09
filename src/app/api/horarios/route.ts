@@ -23,8 +23,8 @@ export async function POST(request: Request) {
       }
     )
 
-    const data = new Date(data_iso + 'T12:00:00')
-    const diaSemana = data.getDay()
+    const data = new Date(data_iso + 'T12:00:00-03:00')
+    const diaSemana = data.getUTCDay()
 
     const { data: horarios, error: horariosErr } = await supabase
       .from('horarios_exames')
@@ -39,16 +39,19 @@ export async function POST(request: Request) {
       .from('atendimentos')
       .select('data_agendamento')
       .not('status', 'eq', 'cancelado')
-      .gte('data_agendamento', data_iso + 'T00:00:00')
-      .lte('data_agendamento', data_iso + 'T23:59:59')
+      .gte('data_agendamento', data_iso + 'T00:00:00-03:00')
+      .lte('data_agendamento', data_iso + 'T23:59:59-03:00')
 
     if (ocupErr) return NextResponse.json({ error: ocupErr.message }, { status: 500 })
 
+    const fmtHora = new Intl.DateTimeFormat('en-GB', {
+      timeZone: 'America/Sao_Paulo',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false,
+    })
     const horariosOcupados = new Set(
-      (ocupados || []).map((a: any) => {
-        const d = new Date(a.data_agendamento)
-        return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
-      })
+      (ocupados || []).map((a: any) => fmtHora.format(new Date(a.data_agendamento)))
     )
 
     const nomesDia = ['Domingo', 'Segunda', 'Terca', 'Quarta', 'Quinta', 'Sexta', 'Sabado']

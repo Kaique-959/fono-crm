@@ -1,6 +1,47 @@
 import { google } from 'googleapis'
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
+import { createAdminClient } from './supabase-admin'
+
+const CONFIG_ID = '00000000-0000-0000-0000-000000000001'
+
+function getRedirectUri() {
+  if (process.env.NEXT_PUBLIC_APP_URL) {
+    return new URL('/api/google/callback', process.env.NEXT_PUBLIC_APP_URL).toString()
+  }
+  return 'http://localhost:3000/api/google/callback'
+}
+
+async function buildGoogleClient(supabase: any) {
+  const { data } = await supabase
+    .from('configuracoes')
+    .select('*')
+    .eq('id', CONFIG_ID)
+    .single()
+
+  if (!data?.google_refresh_token) {
+    return null
+  }
+
+  const oauth2 = new google.auth.OAuth2(
+    data.google_client_id,
+    data.google_client_secret,
+    getRedirectUri()
+  )
+  oauth2.setCredentials({ refresh_token: data.google_refresh_token })
+
+  return google.calendar({ version: 'v3', auth: oauth2 })
+}
+
+async function fetchCalendarId(supabase: any): Promise<string> {
+  const { data } = await supabase
+    .from('configuracoes')
+    .select('google_calendar_id')
+    .eq('id', CONFIG_ID)
+    .single()
+
+  return data?.google_calendar_id || 'kaiquecalefi2@gmail.com'
+}
 
 export async function getGoogleClient() {
   const cookieStore = await cookies()
@@ -14,25 +55,12 @@ export async function getGoogleClient() {
       },
     }
   )
+  return buildGoogleClient(supabase)
+}
 
-  const { data } = await supabase
-    .from('configuracoes')
-    .select('*')
-    .eq('id', '00000000-0000-0000-0000-000000000001')
-    .single()
-
-  if (!data?.google_refresh_token) {
-    return null
-  }
-
-  const oauth2 = new google.auth.OAuth2(
-    data.google_client_id,
-    data.google_client_secret,
-    'http://localhost:3000/api/google/callback'
-  )
-  oauth2.setCredentials({ refresh_token: data.google_refresh_token })
-
-  return google.calendar({ version: 'v3', auth: oauth2 })
+export async function getGoogleClientAdmin() {
+  const supabase = createAdminClient()
+  return buildGoogleClient(supabase)
 }
 
 export async function getCalendarId(): Promise<string> {
@@ -47,13 +75,12 @@ export async function getCalendarId(): Promise<string> {
       },
     }
   )
-  const { data } = await supabase
-    .from('configuracoes')
-    .select('google_calendar_id')
-    .eq('id', '00000000-0000-0000-0000-000000000001')
-    .single()
+  return fetchCalendarId(supabase)
+}
 
-  return data?.google_calendar_id || 'kaiquecalefi2@gmail.com'
+export async function getCalendarIdAdmin(): Promise<string> {
+  const supabase = createAdminClient()
+  return fetchCalendarId(supabase)
 }
 
 export async function createGoogleEvent(atendimento: any, pacienteNome: string) {
@@ -62,20 +89,50 @@ export async function createGoogleEvent(atendimento: any, pacienteNome: string) 
 
   const calendarId = await getCalendarId()
 
-  const event = await gcal.events.insert({
-    calendarId,
-    requestBody: {
-      summary: `${pacienteNome} - ${atendimento.tipo_exame}`,
-      description: atendimento.observacoes || '',
-      start: { dateTime: atendimento.data_agendamento, timeZone: 'America/Sao_Paulo' },
-      end: {
-        dateTime: new Date(new Date(atendimento.data_agendamento).getTime() + 60 * 60 * 1000).toISOString(),
-        timeZone: 'America/Sao_Paulo',
+  try {
+    const event = await gcal.events.insert({
+      calendarId,
+      requestBody: {
+        summary: `${pacienteNome} - ${atendimento.tipo_exame}`,
+        description: atendimento.observacoes || '',
+        start: { dateTime: atendimento.data_agendamento, timeZone: 'America/Sao_Paulo' },
+        end: {
+          dateTime: new Date(new Date(atendimento.data_agendamento).getTime() + 60 * 60 * 1000).toISOString(),
+          timeZone: 'America/Sao_Paulo',
+        },
       },
-    },
-  })
+    })
+    return event.data.id
+  } catch (e) {
+    console.error('Erro ao criar evento no Google Calendar:', e)
+    return null
+  }
+}
 
-  return event.data.id
+export async function createGoogleEventAdmin(atendimento: any, pacienteNome: string) {
+  const gcal = await getGoogleClientAdmin()
+  if (!gcal) return null
+
+  const calendarId = await getCalendarIdAdmin()
+
+  try {
+    const event = await gcal.events.insert({
+      calendarId,
+      requestBody: {
+        summary: `${pacienteNome} - ${atendimento.tipo_exame}`,
+        description: atendimento.observacoes || '',
+        start: { dateTime: atendimento.data_agendamento, timeZone: 'America/Sao_Paulo' },
+        end: {
+          dateTime: new Date(new Date(atendimento.data_agendamento).getTime() + 60 * 60 * 1000).toISOString(),
+          timeZone: 'America/Sao_Paulo',
+        },
+      },
+    })
+    return event.data.id
+  } catch (e) {
+    console.error('Erro ao criar evento no Google Calendar (admin):', e)
+    return null
+  }
 }
 
 export async function deleteGoogleEvent(eventId: string) {
@@ -85,7 +142,9 @@ export async function deleteGoogleEvent(eventId: string) {
   const calendarId = await getCalendarId()
   try {
     await gcal.events.delete({ calendarId, eventId })
-  } catch {}
+  } catch (e) {
+    console.error('Erro ao deletar evento no Google Calendar:', e)
+  }
 }
 
 export async function listGoogleEvents(timeMin?: Date, timeMax?: Date) {

@@ -11,6 +11,7 @@ export default function PacienteDetailPage() {
   const [paciente, setPaciente] = useState<any>(null)
   const [atendimentos, setAtendimentos] = useState<any[]>([])
   const [interacoes, setInteracoes] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     if (!id) return
@@ -18,18 +19,25 @@ export default function PacienteDetailPage() {
   }, [id])
 
   async function loadData() {
-    const supabase = getSupabaseBrowser()
-    const { data: p } = await supabase.from('pacientes').select('*').eq('id', id).single()
-    setPaciente(p)
+    try {
+      const supabase = getSupabaseBrowser()
+      const { data: p } = await supabase.from('pacientes').select('*').eq('id', id).single()
+      setPaciente(p)
 
-    const { data: a } = await supabase.from('atendimentos').select('*').eq('paciente_id', id).order('data_agendamento', { ascending: false })
-    setAtendimentos(a || [])
+      const { data: a } = await supabase.from('atendimentos').select('*').eq('paciente_id', id).order('data_agendamento', { ascending: false })
+      setAtendimentos(a || [])
 
-    const { data: i } = await supabase.from('interacoes').select('*').eq('paciente_id', id).order('criado_em', { ascending: false }).limit(10)
-    setInteracoes(i || [])
+      const { data: i } = await supabase.from('interacoes').select('*').eq('paciente_id', id).order('criado_em', { ascending: false }).limit(10)
+      setInteracoes(i || [])
+    } catch (e) {
+      console.error('Erro ao carregar paciente:', e)
+    } finally {
+      setLoading(false)
+    }
   }
 
-  if (!paciente) return <p className="text-center py-12" style={{ color: 'var(--muted)' }}>Carregando...</p>
+  if (loading) return <p className="text-center py-12" style={{ color: 'var(--muted)' }}>Carregando...</p>
+  if (!paciente) return <p className="text-center py-12" style={{ color: 'var(--muted)' }}>Paciente nao encontrado.</p>
 
   const statusLabel: Record<string, string> = { lead: '📥 Lead', agendado: '📅 Agendado', realizado: '✅ Realizado', retorno: '🔄 Retorno', inativo: '❌ Inativo' }
 

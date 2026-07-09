@@ -25,6 +25,7 @@ export default function RelatoriosPage() {
   }
 
   async function loadReports() {
+    try {
     const supabase = getSupabaseBrowser()
     const range = getDateRange()
 
@@ -36,14 +37,16 @@ export default function RelatoriosPage() {
     const { data: pacientes } = await supabase.from('pacientes')
       .select('criado_em')
       .gte('criado_em', range.start)
+      .lte('criado_em', range.end)
 
     const realizados = (atendimentos || []).filter(a => a.status === 'realizado')
     const fatTotal = realizados.reduce((s, a) => s + (Number(a.valor) || 0), 0)
     setSummary({ faturamento: fatTotal, exames: realizados.length, pacientes: pacientes?.length || 0 })
 
     if (atendimentos) {
+      const realizadosForCharts = atendimentos.filter(a => a.status === 'realizado')
       const fatPorMes: Record<string, number> = {}
-      atendimentos.forEach(a => {
+      realizadosForCharts.forEach(a => {
         if (a.data_agendamento) {
           const mes = a.data_agendamento.slice(0, 7)
           fatPorMes[mes] = (fatPorMes[mes] || 0) + (Number(a.valor) || 0)
@@ -56,11 +59,14 @@ export default function RelatoriosPage() {
       })
 
       const examesAgrupar: Record<string, number> = {}
-      atendimentos.forEach(a => { examesAgrupar[a.tipo_exame] = (examesAgrupar[a.tipo_exame] || 0) + 1 })
+      realizadosForCharts.forEach(a => { examesAgrupar[a.tipo_exame] = (examesAgrupar[a.tipo_exame] || 0) + 1 })
       setChartExames({
         labels: Object.keys(examesAgrupar),
         datasets: [{ data: Object.values(examesAgrupar), backgroundColor: ['#9b5b32', '#4f8a4f', '#c9822f', '#b33a3a', '#4c4037', '#7a6d63', '#ded2c3'] }]
       })
+    }
+    } catch (e) {
+      console.error('Erro ao carregar relatorios:', e)
     }
   }
 

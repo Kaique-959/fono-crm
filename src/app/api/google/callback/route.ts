@@ -3,6 +3,13 @@ import { NextResponse } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 
+function getRedirectUri() {
+  if (process.env.NEXT_PUBLIC_APP_URL) {
+    return new URL('/api/google/callback', process.env.NEXT_PUBLIC_APP_URL).toString()
+  }
+  return 'http://localhost:3000/api/google/callback'
+}
+
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url)
   const code = searchParams.get('code')
@@ -14,30 +21,47 @@ export async function GET(request: Request) {
   const oauth2Client = new google.auth.OAuth2(
     process.env.GOOGLE_CLIENT_ID,
     process.env.GOOGLE_CLIENT_SECRET,
-    'http://localhost:3000/api/google/callback'
+    getRedirectUri()
   )
 
-  const { tokens } = await oauth2Client.getToken(code)
+  try {
+    const { tokens } = await oauth2Client.getToken(code)
 
-  const cookieStore = await cookies()
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll: () => cookieStore.getAll(),
-        setAll: (toSet: { name: string; value: string; options?: any }[]) => { try { toSet.forEach(({ name, value, options }) => cookieStore.set(name, value, options)) } catch {} },
-      },
+    const cookieStore = await cookies()
+    const supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        cookies: {
+          getAll: () => cookieStore.getAll(),
+          setAll: (toSet: { name: string; value: string; options?: any }[]) => {
+            try { toSet.forEach(({ name, value, options }) => cookieStore.set(name, value, options)) } catch {}
+          },
+        },
+      }
+    )
+
+    const updateData: Record<string, any> = {
+      id: '00000000-0000-0000-0000-000000000001',
+      google_client_id: process.env.GOOGLE_CLIENT_ID,
+      google_client_secret: process.env.GOOGLE_CLIENT_SECRET,
+      atualizado_em: new Date().toISOString(),
     }
-  )
 
-  await supabase.from('configuracoes').upsert({
-    id: '00000000-0000-0000-0000-000000000001',
-    google_refresh_token: tokens.refresh_token,
-    google_client_id: process.env.GOOGLE_CLIENT_ID,
-    google_client_secret: process.env.GOOGLE_CLIENT_SECRET,
-    atualizado_em: new Date().toISOString(),
-  })
+    if (tokens.refresh_token) {
+      updateData.google_refresh_token = tokens.refresh_token
+    }
 
-  return NextResponse.redirect(new URL('/agenda?google_auth=success', request.url))
+    const { error } = await supabase.from('configuracoes').upsert(updateData)
+
+    if (error) {
+      console.error('Erro ao salvar tokens Google:', error)
+      return NextResponse.redirect(new URL('/agenda?google_auth=error', request.url))
+    }
+
+    return NextResponse.redirect(new URL('/agenda?google_auth=success', request.url))
+  } catch (e: any) {
+    console.error('Erro no OAuth callback:', e)
+    return NextResponse.redirect(new URL('/agenda?google_auth=error', request.url))
+  }
 }

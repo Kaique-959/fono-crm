@@ -1,10 +1,13 @@
 'use client'
 
 import { useEffect, useState, useRef } from 'react'
+import { useRouter } from 'next/navigation'
+import toast from 'react-hot-toast'
 import { getSupabaseBrowser } from '@/lib/supabase'
 import { Plus, Search } from 'lucide-react'
 
 export default function PacientesPage() {
+  const router = useRouter()
   const [pacientes, setPacientes] = useState<any[]>([])
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState('')
@@ -14,9 +17,14 @@ export default function PacientesPage() {
   const [pedidoFile, setPedidoFile] = useState<string>('')
   const [pedidoFileName, setPedidoFileName] = useState('')
   const fileRef = useRef<HTMLInputElement>(null)
+  const searchTimeout = useRef<ReturnType<typeof setTimeout>>()
   const [form, setForm] = useState({ nome: '', responsavel: '', data_nascimento: '', whatsapp: '', observacoes: '', status: 'lead' })
 
-  useEffect(() => { loadPacientes() }, [search, statusFilter])
+  useEffect(() => {
+    if (searchTimeout.current) clearTimeout(searchTimeout.current)
+    searchTimeout.current = setTimeout(() => loadPacientes(), 300)
+    return () => { if (searchTimeout.current) clearTimeout(searchTimeout.current) }
+  }, [search, statusFilter])
 
   async function loadPacientes() {
     const supabase = getSupabaseBrowser()
@@ -47,7 +55,7 @@ export default function PacientesPage() {
   function handlePedidoFile(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
     if (!file) return
-    if (file.type !== 'application/pdf') { alert('Apenas PDF'); return }
+    if (file.type !== 'application/pdf') { toast.error('Apenas PDF'); return }
     const reader = new FileReader()
     reader.onload = (ev) => {
       setPedidoFile(ev.target?.result as string)
@@ -57,20 +65,28 @@ export default function PacientesPage() {
   }
 
   async function handleSave() {
-    if (!form.nome.trim()) return alert('Informe o nome do paciente.')
-    const supabase = getSupabaseBrowser()
-    const payload = {
-      ...form,
-      pedido_medico: pedidoSim ? 'sim' : 'nao',
-      pedido_file: pedidoSim ? pedidoFile : '',
+    if (!form.nome.trim()) { toast.error('Informe o nome do paciente.'); return }
+    try {
+      const supabase = getSupabaseBrowser()
+      const payload = {
+        ...form,
+        pedido_medico: pedidoSim ? 'sim' : 'nao',
+        pedido_file: pedidoSim ? pedidoFile : '',
+      }
+      if (editId) {
+        const { error } = await supabase.from('pacientes').update(payload).eq('id', editId)
+        if (error) throw error
+        toast.success('Paciente atualizado!')
+      } else {
+        const { error } = await supabase.from('pacientes').insert(payload)
+        if (error) throw error
+        toast.success('Paciente criado!')
+      }
+      setShowModal(false)
+      loadPacientes()
+    } catch (e: any) {
+      toast.error('Erro ao salvar: ' + e.message)
     }
-    if (editId) {
-      await supabase.from('pacientes').update(payload).eq('id', editId)
-    } else {
-      await supabase.from('pacientes').insert(payload)
-    }
-    setShowModal(false)
-    loadPacientes()
   }
 
   const statusLabel: Record<string, string> = { lead: '📥 Lead', agendado: '📅 Agendado', realizado: '✅ Realizado', retorno: '🔄 Retorno', inativo: '❌ Inativo' }
@@ -112,7 +128,7 @@ export default function PacientesPage() {
             {pacientes.length === 0 ? (
               <tr><td colSpan={5} className="text-center py-12" style={{ color: 'var(--muted)' }}>Nenhum paciente encontrado.</td></tr>
             ) : pacientes.map(p => (
-              <tr key={p.id} className="cursor-pointer transition-colors hover:opacity-80" style={{ borderBottom: '1px solid var(--border)' }} onClick={() => window.location.href = `/pacientes/${p.id}`}>
+              <tr key={p.id} className="cursor-pointer transition-colors hover:opacity-80" style={{ borderBottom: '1px solid var(--border)' }} onClick={() => router.push(`/pacientes/${p.id}`)}>
                 <td className="py-3 px-3.5"><strong>{p.nome}</strong></td>
                 <td className="py-3 px-3.5">{p.responsavel || '—'}</td>
                 <td className="py-3 px-3.5">{p.whatsapp || '—'}</td>
@@ -128,7 +144,7 @@ export default function PacientesPage() {
         {pacientes.length === 0 ? (
           <p className="text-center py-8 text-sm" style={{ color: 'var(--muted)' }}>Nenhum paciente encontrado.</p>
         ) : pacientes.map(p => (
-          <div key={p.id} className="card-paciente" onClick={() => window.location.href = `/pacientes/${p.id}`}>
+          <div key={p.id} className="card-paciente" onClick={() => router.push(`/pacientes/${p.id}`)}>
             <div className="flex items-center justify-between">
               <strong className="text-sm">{p.nome}</strong>
               <span className={`status-badge ${p.status} text-[10px]`}>{statusLabel[p.status] || 'Lead'}</span>
