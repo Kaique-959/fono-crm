@@ -45,13 +45,20 @@ export async function POST(request: Request) {
     if (ocupErr) return NextResponse.json({ error: ocupErr.message }, { status: 500 })
 
     const horariosOcupados = new Set(
-      (ocupados || []).map((a: any) =>
-        new Date(a.data_agendamento).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', hour12: false })
-      )
+      (ocupados || []).map((a: any) => {
+        const d = new Date(a.data_agendamento)
+        return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
+      })
     )
 
     const nomesDia = ['Domingo', 'Segunda', 'Terca', 'Quarta', 'Quinta', 'Sexta', 'Sabado']
-    const todosHorarios = (horarios || []).map((h: any) => h.horario.slice(0, 5))
+    const todosHorarios = (horarios || [])
+      .map((h: any) => {
+        const v = h.horario
+        if (typeof v === 'string') return v.slice(0, 5)
+        return `${String(v.getHours ? v.getHours() : 0).padStart(2, '0')}:${String(v.getMinutes ? v.getMinutes() : 0).padStart(2, '0')}`
+      })
+      .filter(Boolean)
     const disponiveis = todosHorarios.filter((h: string) => !horariosOcupados.has(h))
 
     return NextResponse.json({
