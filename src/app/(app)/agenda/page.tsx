@@ -237,15 +237,9 @@ export default function AgendaPage() {
                   {EXAMES.map(ex => <option key={ex.id} value={ex.nome}>{ex.nome}{ex.valor ? ` - R$ ${ex.valor}` : ''}</option>)}
                 </select>
               </div>
-              <div>
+              <div lang="pt-BR">
                 <label className="text-xs font-medium" style={{ color: 'var(--fg-2)' }}>Data</label>
-                <div className="flex gap-2 items-center">
-                  <input className="w-16 text-center" placeholder="DD" maxLength={2} value={selectedDate ? selectedDate.split('-')[2] || '' : ''} onChange={e => { const p = selectedDate.split('-'); const d = e.target.value.replace(/\D/g, '').slice(0, 2); setSelectedDate(`${p[0]}-${p[1]}-${d.padStart(2, '0')}`) }} />
-                  <span className="text-sm" style={{ color: 'var(--muted)' }}>/</span>
-                  <input className="w-16 text-center" placeholder="MM" maxLength={2} value={selectedDate ? selectedDate.split('-')[1] || '' : ''} onChange={e => { const p = selectedDate.split('-'); const v = e.target.value.replace(/\D/g, '').slice(0, 2); setSelectedDate(`${p[0]}-${v.padStart(2, '0')}-${p[2]}`) }} />
-                  <span className="text-sm" style={{ color: 'var(--muted)' }}>/</span>
-                  <input className="w-24 text-center" placeholder="AAAA" maxLength={4} value={selectedDate ? selectedDate.split('-')[0] || '' : ''} onChange={e => { const p = selectedDate.split('-'); const v = e.target.value.replace(/\D/g, '').slice(0, 4); setSelectedDate(`${v}-${p[1]}-${p[2]}`) }} />
-                </div>
+                <input type="date" lang="pt-BR" value={selectedDate} onChange={e => setSelectedDate(e.target.value)} />
               </div>
               <div>
                 <label className="text-xs font-medium" style={{ color: 'var(--fg-2)' }}>Horario</label>
