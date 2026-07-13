@@ -59,7 +59,7 @@ export default function AgendaPage() {
     if (!form.paciente_id || !form.tipo_exame) return toast.error('Preencha todos os campos')
     const supabase = getSupabaseBrowser()
     const [hh, mm] = form.hora.split(':')
-    const dataAgendamento = `${selectedDate}T${(hh || '08').padStart(2, '0')}:${(mm || '00').padStart(2, '0')}:00`
+    const dataAgendamento = `${selectedDate}T${(hh || '08').padStart(2, '0')}:${(mm || '00').padStart(2, '0')}:00-03:00`
     const { data: a, error } = await supabase.from('atendimentos').insert({
       paciente_id: form.paciente_id,
       tipo_exame: form.tipo_exame,
