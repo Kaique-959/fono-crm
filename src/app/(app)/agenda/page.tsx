@@ -112,7 +112,9 @@ export default function AgendaPage() {
   async function handleToggleStatus(a: any) {
     const novo = a.status === 'agendado' ? 'realizado' : 'agendado'
     const supabase = getSupabaseBrowser()
-    const { error } = await supabase.from('atendimentos').update({ status: novo }).eq('id', a.id)
+    const update: any = { status: novo }
+    if (novo === 'realizado') update.data_realizacao = new Date().toISOString()
+    const { error } = await supabase.from('atendimentos').update(update).eq('id', a.id)
     if (error) return toast.error(error.message)
     toast.success(`Marcado como ${novo}!`)
     loadData()

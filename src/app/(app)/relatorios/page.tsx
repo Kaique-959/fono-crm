@@ -30,9 +30,8 @@ export default function RelatoriosPage() {
     const range = getDateRange()
 
     const { data: atendimentos } = await supabase.from('atendimentos')
-      .select('data_agendamento, tipo_exame, valor, status')
-      .gte('data_agendamento', range.start)
-      .lte('data_agendamento', range.end)
+      .select('data_agendamento, data_realizacao, tipo_exame, valor, status')
+      .or(`and(status.eq.realizado,data_realizacao.gte.${range.start},data_realizacao.lte.${range.end}),and(status.neq.realizado,data_agendamento.gte.${range.start},data_agendamento.lte.${range.end})`)
 
     const { data: pacientes } = await supabase.from('pacientes')
       .select('criado_em')

@@ -64,6 +64,19 @@ export default function PacientesPage() {
     reader.readAsDataURL(file)
   }
 
+  async function handleDelete(id: string, nome: string) {
+    if (!confirm(`Excluir paciente "${nome}"? Esta ação não pode ser desfeita.`)) return
+    try {
+      const supabase = getSupabaseBrowser()
+      const { error } = await supabase.from('pacientes').delete().eq('id', id)
+      if (error) throw error
+      toast.success('Paciente excluído!')
+      loadPacientes()
+    } catch (e: any) {
+      toast.error('Erro ao excluir: ' + e.message)
+    }
+  }
+
   async function handleSave() {
     if (!form.nome.trim()) { toast.error('Informe o nome do paciente.'); return }
     try {
@@ -122,11 +135,12 @@ export default function PacientesPage() {
               <th className="text-left py-3 px-3.5 text-xs uppercase tracking-wider font-mono font-medium" style={{ color: 'var(--muted)', borderBottom: '1px solid var(--border)' }}>WhatsApp</th>
               <th className="text-left py-3 px-3.5 text-xs uppercase tracking-wider font-mono font-medium" style={{ color: 'var(--muted)', borderBottom: '1px solid var(--border)' }}>Pedido</th>
               <th className="text-left py-3 px-3.5 text-xs uppercase tracking-wider font-mono font-medium" style={{ color: 'var(--muted)', borderBottom: '1px solid var(--border)' }}>Status</th>
+              <th className="text-right py-3 px-3.5 text-xs uppercase tracking-wider font-mono font-medium" style={{ color: 'var(--muted)', borderBottom: '1px solid var(--border)' }}>Ação</th>
             </tr>
           </thead>
           <tbody>
             {pacientes.length === 0 ? (
-              <tr><td colSpan={5} className="text-center py-12" style={{ color: 'var(--muted)' }}>Nenhum paciente encontrado.</td></tr>
+              <tr><td colSpan={6} className="text-center py-12" style={{ color: 'var(--muted)' }}>Nenhum paciente encontrado.</td></tr>
             ) : pacientes.map(p => (
               <tr key={p.id} className="cursor-pointer transition-colors hover:opacity-80" style={{ borderBottom: '1px solid var(--border)' }} onClick={() => router.push(`/pacientes/${p.id}`)}>
                 <td className="py-3 px-3.5"><strong>{p.nome}</strong></td>
@@ -134,6 +148,16 @@ export default function PacientesPage() {
                 <td className="py-3 px-3.5">{p.whatsapp || '—'}</td>
                 <td className="py-3 px-3.5 text-center">{p.pedido_medico === 'sim' ? <span style={{ color: 'var(--success)', cursor: 'help' }} title="Com pedido médico">📋 Sim</span> : <span style={{ color: 'var(--muted)' }}>—</span>}</td>
                 <td className="py-3 px-3.5"><span className={`status-badge ${p.status}`}>{statusLabel[p.status] || 'Lead'}</span></td>
+                <td className="py-3 px-3.5 text-right">
+                  <button
+                    onClick={e => { e.stopPropagation(); handleDelete(p.id, p.nome) }}
+                    className="text-[10px] px-2 py-1 rounded hover:opacity-70"
+                    style={{ color: 'var(--danger)' }}
+                    title="Excluir paciente"
+                  >
+                    Excluir
+                  </button>
+                </td>
               </tr>
             ))}
           </tbody>
@@ -154,6 +178,14 @@ export default function PacientesPage() {
               {p.whatsapp && <span>📱 {p.whatsapp}</span>}
               {p.pedido_medico === 'sim' && <span style={{ color: 'var(--success)' }}>📋 Pedido</span>}
             </div>
+            <button
+              onClick={e => { e.stopPropagation(); handleDelete(p.id, p.nome) }}
+              className="text-[10px] mt-2 px-2 py-1 rounded"
+              style={{ color: 'var(--danger)' }}
+              title="Excluir paciente"
+            >
+              Excluir
+            </button>
           </div>
         ))}
       </div>
